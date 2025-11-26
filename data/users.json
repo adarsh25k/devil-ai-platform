@@ -1,0 +1,16 @@
+[
+  {
+    "id": "user_1764146695919",
+    "username": "devilbaby",
+    "password": "26006507a5a8d171d3ecb3b95731b3365b46a141e3351658c08fafb9a39069dd",
+    "isAdmin": true,
+    "createdAt": "2025-11-26T08:44:55.919Z"
+  },
+  {
+    "id": "user_1764146725582",
+    "username": "adarsh",
+    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+    "isAdmin": false,
+    "createdAt": "2025-11-26T08:45:25.582Z"
+  }
+]
