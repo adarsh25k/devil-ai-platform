@@ -45,7 +45,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("All");
-  const [selectedModel, setSelectedModel] = useState<string>("auto");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [userId, setUserId] = useState("");
@@ -164,11 +163,11 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      // Get conversation history (last 10 messages for context)
+      // Get conversation history
       const currentChatData = chats.find((c) => c.id === currentChatId);
       const conversationHistory = currentChatData?.messages.slice(-10) || [];
 
-      // Call the real API with selected model
+      // Call API - auto routing, no model selection
       const response = await fetch("/api/chat/send", {
         method: "POST",
         headers: {
@@ -179,7 +178,6 @@ export default function ChatPage() {
           userId,
           chatId: currentChatId,
           conversationHistory,
-          selectedModel: selectedModel !== "auto" ? selectedModel : undefined,
         }),
       });
 
@@ -209,11 +207,10 @@ export default function ChatPage() {
     } catch (error) {
       console.error("Error sending message:", error);
       
-      // Show error message in chat
       const errorMessage: Message = {
         id: `msg_${Date.now()}`,
         role: "ai",
-        content: `🔥 Error: ${error instanceof Error ? error.message : "Failed to get response from the Devil. Please check if OpenRouter API key is configured in Admin panel."}`,
+        content: `🔥 Error: ${error instanceof Error ? error.message : "Failed to get response. Please check if OpenRouter API keys are configured in Admin panel."}`,
         timestamp: Date.now(),
       };
 
@@ -287,7 +284,7 @@ export default function ChatPage() {
         {/* Sidebar Header */}
         <div className="p-4 border-b border-red-600">
           <h1 className="text-2xl font-bold glitch-text neon-text mb-4">
-            👹 I AM DEVIL
+            👹 DEVIL DEV
           </h1>
           <Button
             onClick={createNewChat}
@@ -466,8 +463,8 @@ export default function ChatPage() {
                       <div className="w-8 h-8 rounded-full bg-red-600 demon-eyes" />
                       <div className="w-8 h-8 rounded-full bg-red-600 demon-eyes" />
                     </div>
-                    <p className="text-2xl glitch-text neon-text">Start summoning the devil...</p>
-                    <p className="text-orange-500">Type your message below 🔥</p>
+                    <p className="text-2xl glitch-text neon-text">Start building with DEVIL DEV...</p>
+                    <p className="text-orange-500">Ask about coding, UI/UX, or game development 🔥</p>
                   </div>
                 </div>
               ) : (
@@ -482,15 +479,21 @@ export default function ChatPage() {
                           msg.role === "user" ? "user-bubble" : "ai-bubble"
                         }`}
                       >
+                        {msg.role === "ai" && msg.model && (
+                          <div className="mb-2 pb-2 border-b border-red-600/30">
+                            <p className="text-xs font-mono text-orange-500">
+                              🤖 Using: <span className="font-bold">{msg.model}</span>
+                            </p>
+                            {msg.routingReason && (
+                              <p className="text-[10px] text-red-600 mt-1">
+                                📍 {msg.routingReason}
+                              </p>
+                            )}
+                          </div>
+                        )}
                         <p className="whitespace-pre-wrap">{msg.content}</p>
-                        <div className={`text-xs mt-2 ${msg.role === "user" ? "text-black/60" : "text-red-600"} space-y-1`}>
+                        <div className={`text-xs mt-2 ${msg.role === "user" ? "text-black/60" : "text-red-600"}`}>
                           <p>{new Date(msg.timestamp).toLocaleTimeString()}</p>
-                          {msg.model && (
-                            <p className="font-mono text-[10px]">🤖 {msg.model}</p>
-                          )}
-                          {msg.routingReason && (
-                            <p className="text-[10px]">📍 {msg.routingReason}</p>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -499,7 +502,7 @@ export default function ChatPage() {
                     <div className="flex justify-start">
                       <div className="ai-bubble">
                         <p className="animate-pulse neon-text">
-                          Summoning Devil... 👹🔥
+                          Devil's thinking... 👹🔥
                         </p>
                       </div>
                     </div>
@@ -509,32 +512,9 @@ export default function ChatPage() {
               )}
             </ScrollArea>
 
-            {/* Message Input */}
+            {/* Message Input - NO MODEL SELECTOR */}
             <div className="p-4 border-t border-red-600 bg-black/50 backdrop-blur-sm">
-              <div className="max-w-4xl mx-auto space-y-3">
-                {/* Model Selector */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-orange-500 font-medium whitespace-nowrap">🤖 Model:</span>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="bg-black/80 border-red-600 text-orange-500 w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black border-red-600">
-                      <SelectItem value="auto" className="text-orange-500">🎯 Auto (Smart Detection)</SelectItem>
-                      <SelectItem value="study" className="text-orange-500">📚 Study Model</SelectItem>
-                      <SelectItem value="coding" className="text-orange-500">💻 Coding Model</SelectItem>
-                      <SelectItem value="fast" className="text-orange-500">⚡ Fast Model</SelectItem>
-                      <SelectItem value="image" className="text-orange-500">🖼️ Image Model</SelectItem>
-                      <SelectItem value="video" className="text-orange-500">🎥 Video Model</SelectItem>
-                      <SelectItem value="uiux" className="text-orange-500">🎨 UI/UX Model</SelectItem>
-                      <SelectItem value="ppt" className="text-orange-500">📊 PPT Model</SelectItem>
-                      <SelectItem value="canvas" className="text-orange-500">🎭 Canvas Model</SelectItem>
-                      <SelectItem value="game" className="text-orange-500">🎮 Game Model</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Message Input */}
+              <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2">
                   <Textarea
                     value={message}
@@ -545,7 +525,7 @@ export default function ChatPage() {
                         sendMessage();
                       }
                     }}
-                    placeholder="Ask the devil anything... 😈"
+                    placeholder="Ask about coding, UI/UX, game dev, or anything... 🔥"
                     className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800 min-h-[60px] resize-none"
                     disabled={loading}
                   />
@@ -557,6 +537,9 @@ export default function ChatPage() {
                     🔥
                   </Button>
                 </div>
+                <p className="text-xs text-orange-500/60 mt-2 text-center">
+                  💡 Auto-routing enabled - I'll pick the best model for your task
+                </p>
               </div>
             </div>
           </>
@@ -570,7 +553,7 @@ export default function ChatPage() {
               <h2 className="text-4xl font-bold glitch-text neon-text">
                 Select a chat or create a new one
               </h2>
-              <p className="text-xl text-orange-500">The Devil awaits... 👹</p>
+              <p className="text-xl text-orange-500">DEVIL DEV awaits... 👹</p>
             </div>
           </div>
         )}

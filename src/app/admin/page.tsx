@@ -523,9 +523,9 @@ export default function AdminDashboard() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-5xl font-bold glitch-text neon-text mb-2">
-              👹 Devil's Control Panel v2.0
+              👹 DEVIL DEV Control Panel
             </h1>
-            <p className="text-orange-500">Master of the Abyss</p>
+            <p className="text-orange-500">Developer + Game Dev + UI/UX AI Platform</p>
           </div>
           <Button
             onClick={handleLogout}
@@ -1037,40 +1037,36 @@ export default function AdminDashboard() {
       <Dialog open={showAddKey} onOpenChange={setShowAddKey}>
         <DialogContent className="devil-card border-2 border-red-600">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Add API Key</DialogTitle>
+            <DialogTitle className="text-2xl glitch-text neon-text">Add API Key (DEVIL DEV)</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddApiKey} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Key Name</Label>
+              <Label className="text-red-400">Key Type</Label>
               <Select value={newKey.key_name} onValueChange={(value) => setNewKey({ ...newKey, key_name: value })}>
                 <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
                   <SelectValue placeholder="Select key type" />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-red-600">
-                  <SelectItem value="openrouter_study_key">1. Study Key (openrouter_study_key)</SelectItem>
-                  <SelectItem value="openrouter_coding_key">2. Coding Key (openrouter_coding_key)</SelectItem>
-                  <SelectItem value="openrouter_fast_key">3. Fast Key (openrouter_fast_key)</SelectItem>
-                  <SelectItem value="openrouter_image_key">4. Image Gen Key (openrouter_image_key)</SelectItem>
-                  <SelectItem value="openrouter_video_key">5. Video Gen Key (openrouter_video_key)</SelectItem>
-                  <SelectItem value="openrouter_uiux_key">6. UI/UX Key (openrouter_uiux_key)</SelectItem>
-                  <SelectItem value="openrouter_ppt_key">7. PPT Builder Key (openrouter_ppt_key)</SelectItem>
-                  <SelectItem value="openrouter_canvas_key">8. Canvas Builder Key (openrouter_canvas_key)</SelectItem>
-                  <SelectItem value="openrouter_game_key">9. Game Builder Key (openrouter_game_key)</SelectItem>
-                  <SelectItem value="openrouter_auto_key">10. Auto Router Key (openrouter_auto_key)</SelectItem>
+                  <SelectItem value="main_brain_key" className="text-orange-500">🧠 Main Brain Key (General Dev AI)</SelectItem>
+                  <SelectItem value="coding_key" className="text-orange-500">💻 Coding Key (Debug, Backend, API)</SelectItem>
+                  <SelectItem value="uiux_key" className="text-orange-500">🎨 UI/UX Key (Design, Mockups)</SelectItem>
+                  <SelectItem value="game_dev_key" className="text-orange-500">🎮 Game Dev Key (Game Logic, Story)</SelectItem>
+                  <SelectItem value="image_key" className="text-orange-500">🖼️ Image Key (UI Assets, Game Art)</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-orange-500/60">→ Auto-router will select the best model for each task</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">API Key Value</Label>
+              <Label className="text-red-400">OpenRouter API Key</Label>
               <Input
                 type="password"
                 value={newKey.value}
                 onChange={(e) => setNewKey({ ...newKey, value: e.target.value })}
                 className="bg-black/80 border-red-600 text-orange-500"
-                placeholder="Enter API key"
+                placeholder="sk-or-v1-..."
                 required
               />
-              <p className="text-xs text-orange-500">🔒 Will be encrypted with AES-256-GCM</p>
+              <p className="text-xs text-orange-500">🔒 Encrypted with AES-256-GCM</p>
             </div>
             <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
               🔐 Save Key

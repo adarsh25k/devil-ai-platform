@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const messages = [
       {
         role: 'system',
-        content: 'You are a helpful and knowledgeable AI assistant. Provide accurate, detailed, and helpful responses.'
+        content: 'You are DEVIL DEV - an expert AI assistant specializing in software development, game development, and UI/UX design. Your expertise includes:\n\n- **Coding**: Debugging, backend development, frontend development, API design, database architecture, algorithms, and full-stack solutions across multiple languages (JavaScript, TypeScript, Python, Java, C++, etc.)\n- **Game Development**: Game mechanics, level design, game story writing, AI behavior, physics, multiplayer systems, Unity, Unreal Engine, and game engine architecture\n- **UI/UX Design**: Website mockups, user interface design, user experience optimization, responsive design, accessibility, and design systems\n- **Architecture & Planning**: System design, software architecture, tech stack selection, scalability planning, and project structure\n\nProvide expert, detailed, and practical responses. Include code examples when relevant. Be direct and focus on solving real development challenges.'
       },
       ...conversationHistory.map((msg: any) => ({
         role: msg.role === 'ai' ? 'assistant' : 'user',
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${routing.apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
-        'X-Title': 'I AM DEVIL'
+        'X-Title': 'DEVIL DEV'
       },
       body: JSON.stringify({
         model: routing.model,
