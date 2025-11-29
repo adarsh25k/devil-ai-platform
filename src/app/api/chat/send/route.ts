@@ -1,92 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { apiKeys, modelRoutingRules, chatLogs } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { decrypt } from '@/lib/crypto';
-
-// Model router function
-async function selectModel(message: string): Promise<{ model: string; reason: string }> {
-  try {
-    // Fetch all enabled routing rules sorted by priority
-    const rules = await db
-      .select()
-      .from(modelRoutingRules)
-      .where(eq(modelRoutingRules.isEnabled, true))
-      .orderBy(modelRoutingRules.priority);
-
-    const messageLower = message.toLowerCase();
-
-    // Check each rule
-    for (const rule of rules) {
-      const triggerValue = rule.triggerValue.toLowerCase();
-      
-      if (rule.triggerType === 'keyword') {
-        const keywords = triggerValue.split(',').map(k => k.trim());
-        if (keywords.some(keyword => messageLower.includes(keyword))) {
-          return {
-            model: rule.targetModel,
-            reason: `Matched keyword rule: ${rule.ruleName}`
-          };
-        }
-      } else if (rule.triggerType === 'length') {
-        const threshold = parseInt(triggerValue);
-        if (message.length > threshold) {
-          return {
-            model: rule.targetModel,
-            reason: `Matched length rule: ${rule.ruleName}`
-          };
-        }
-      } else if (rule.triggerType === 'intent') {
-        const intents = triggerValue.split(',').map(i => i.trim());
-        if (intents.some(intent => messageLower.includes(intent))) {
-          return {
-            model: rule.targetModel,
-            reason: `Matched intent rule: ${rule.ruleName}`
-          };
-        }
-      }
-    }
-
-    // Default model if no rules match
-    return {
-      model: 'qwen/qwen-2.5-72b-instruct',
-      reason: 'Default model (no rules matched)'
-    };
-  } catch (error) {
-    console.error('Model router error:', error);
-    return {
-      model: 'qwen/qwen-2.5-72b-instruct',
-      reason: 'Default model (router error)'
-    };
-  }
-}
-
-// Retrieve and decrypt API key
-async function getOpenRouterKey(): Promise<string | null> {
-  try {
-    const keyRecord = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.keyName, 'openrouter_api_key'))
-      .limit(1);
-
-    if (keyRecord.length === 0) {
-      return null;
-    }
-
-    return decrypt(keyRecord[0].encryptedValue);
-  } catch (error) {
-    console.error('Failed to retrieve API key:', error);
-    return null;
-  }
-}
+import { chatLogs } from '@/db/schema';
+import { detectAndRoute, routeForced } from '@/lib/modelRouter';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   
   try {
     const body = await request.json();
-    const { message, userId, chatId, conversationHistory = [] } = body;
+    const { message, userId, chatId, conversationHistory = [], selectedModel, debug = false } = body;
 
     // Validate inputs
     if (!message || !userId || !chatId) {
@@ -96,20 +18,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get OpenRouter API key
-    const apiKey = await getOpenRouterKey();
-    if (!apiKey) {
+    // Route to appropriate model and get API key
+    let routing;
+    try {
+      if (selectedModel && selectedModel !== 'auto') {
+        // User manually selected a model
+        routing = await routeForced(selectedModel);
+      } else {
+        // Auto-detect based on message content
+        routing = await detectAndRoute(message);
+      }
+    } catch (error) {
       return NextResponse.json(
         { 
-          error: 'OpenRouter API key not configured. Please add it in Admin > API Keys.',
-          code: 'NO_API_KEY' 
+          error: error instanceof Error ? error.message : 'Routing error',
+          code: 'ROUTING_ERROR' 
         },
         { status: 500 }
       );
     }
 
-    // Select model based on routing rules
-    const { model, reason } = await selectModel(message);
+    // Debug mode: return routing info without calling API
+    if (debug) {
+      return NextResponse.json({
+        debug: true,
+        chosenModel: routing.model,
+        chosenKey: routing.keyType,
+        routerReason: routing.reason,
+        category: routing.category,
+        prompt: message,
+        message: '[DEBUG MODE] - API call skipped'
+      });
+    }
 
     // Prepare messages for OpenRouter
     const messages = [
@@ -131,13 +71,13 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${routing.apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
         'X-Title': 'I AM DEVIL'
       },
       body: JSON.stringify({
-        model,
+        model: routing.model,
         messages,
         temperature: 0.7,
         max_tokens: 2000
@@ -169,10 +109,10 @@ export async function POST(request: NextRequest) {
         chatId,
         messageRole: 'user',
         messageContent: message,
-        modelUsed: model,
+        modelUsed: routing.model,
         tokensIn,
         tokensOut: 0,
-        routingReason: reason,
+        routingReason: routing.reason,
         latency: 0,
         createdAt: new Date().toISOString()
       });
@@ -182,10 +122,10 @@ export async function POST(request: NextRequest) {
         chatId,
         messageRole: 'assistant',
         messageContent: aiMessage,
-        modelUsed: model,
+        modelUsed: routing.model,
         tokensIn: 0,
         tokensOut,
-        routingReason: reason,
+        routingReason: routing.reason,
         latency,
         createdAt: new Date().toISOString()
       });
@@ -197,8 +137,10 @@ export async function POST(request: NextRequest) {
     // Return the response
     return NextResponse.json({
       message: aiMessage,
-      model,
-      routingReason: reason,
+      model: routing.model,
+      routingReason: routing.reason,
+      category: routing.category,
+      keyType: routing.keyType,
       citations: [],
       raw: data,
       usage: {

@@ -104,6 +104,8 @@ export default function AdminDashboard() {
   const [newUser, setNewUser] = useState({ username: "", password: "" });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [newKey, setNewKey] = useState({ key_name: "", value: "" });
+  const [testingKey, setTestingKey] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ keyName: string; result: any } | null>(null);
   const [newText, setNewText] = useState({ key: "", value: "", category: "" });
   const [newTheme, setNewTheme] = useState({
     name: "",
@@ -1045,12 +1047,16 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="Select key type" />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-red-600">
-                  <SelectItem value="openrouter_api_key">OpenRouter API Key</SelectItem>
-                  <SelectItem value="openrouter_embedding_key">OpenRouter Embedding Key</SelectItem>
-                  <SelectItem value="image_generation_key">Image Generation Key</SelectItem>
-                  <SelectItem value="tts_api_key">TTS API Key</SelectItem>
-                  <SelectItem value="ocr_api_key">OCR API Key</SelectItem>
-                  <SelectItem value="youtube_transcript_key">YouTube Transcript Key</SelectItem>
+                  <SelectItem value="openrouter_study_key">1. Study Key (openrouter_study_key)</SelectItem>
+                  <SelectItem value="openrouter_coding_key">2. Coding Key (openrouter_coding_key)</SelectItem>
+                  <SelectItem value="openrouter_fast_key">3. Fast Key (openrouter_fast_key)</SelectItem>
+                  <SelectItem value="openrouter_image_key">4. Image Gen Key (openrouter_image_key)</SelectItem>
+                  <SelectItem value="openrouter_video_key">5. Video Gen Key (openrouter_video_key)</SelectItem>
+                  <SelectItem value="openrouter_uiux_key">6. UI/UX Key (openrouter_uiux_key)</SelectItem>
+                  <SelectItem value="openrouter_ppt_key">7. PPT Builder Key (openrouter_ppt_key)</SelectItem>
+                  <SelectItem value="openrouter_canvas_key">8. Canvas Builder Key (openrouter_canvas_key)</SelectItem>
+                  <SelectItem value="openrouter_game_key">9. Game Builder Key (openrouter_game_key)</SelectItem>
+                  <SelectItem value="openrouter_auto_key">10. Auto Router Key (openrouter_auto_key)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

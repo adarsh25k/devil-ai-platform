@@ -21,6 +21,8 @@ interface Message {
   role: "user" | "ai";
   content: string;
   timestamp: number;
+  model?: string;
+  routingReason?: string;
 }
 
 interface Chat {
@@ -43,6 +45,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("All");
+  const [selectedModel, setSelectedModel] = useState<string>("auto");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [userId, setUserId] = useState("");
@@ -165,7 +168,7 @@ export default function ChatPage() {
       const currentChatData = chats.find((c) => c.id === currentChatId);
       const conversationHistory = currentChatData?.messages.slice(-10) || [];
 
-      // Call the real API
+      // Call the real API with selected model
       const response = await fetch("/api/chat/send", {
         method: "POST",
         headers: {
@@ -176,6 +179,7 @@ export default function ChatPage() {
           userId,
           chatId: currentChatId,
           conversationHistory,
+          selectedModel: selectedModel !== "auto" ? selectedModel : undefined,
         }),
       });
 
@@ -191,6 +195,8 @@ export default function ChatPage() {
         role: "ai",
         content: data.message,
         timestamp: Date.now(),
+        model: data.model,
+        routingReason: data.routingReason,
       };
 
       setChats((prevChats) =>
@@ -477,9 +483,15 @@ export default function ChatPage() {
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
-                        <p className={`text-xs mt-2 ${msg.role === "user" ? "text-black/60" : "text-red-600"}`}>
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                        </p>
+                        <div className={`text-xs mt-2 ${msg.role === "user" ? "text-black/60" : "text-red-600"} space-y-1`}>
+                          <p>{new Date(msg.timestamp).toLocaleTimeString()}</p>
+                          {msg.model && (
+                            <p className="font-mono text-[10px]">🤖 {msg.model}</p>
+                          )}
+                          {msg.routingReason && (
+                            <p className="text-[10px]">📍 {msg.routingReason}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -499,27 +511,52 @@ export default function ChatPage() {
 
             {/* Message Input */}
             <div className="p-4 border-t border-red-600 bg-black/50 backdrop-blur-sm">
-              <div className="flex gap-2 max-w-4xl mx-auto">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  placeholder="Ask the devil anything... 😈"
-                  className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800 min-h-[60px] resize-none"
-                  disabled={loading}
-                />
-                <Button
-                  onClick={sendMessage}
-                  disabled={!message.trim() || loading}
-                  className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold px-8"
-                >
-                  🔥
-                </Button>
+              <div className="max-w-4xl mx-auto space-y-3">
+                {/* Model Selector */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-orange-500 font-medium whitespace-nowrap">🤖 Model:</span>
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="bg-black/80 border-red-600 text-orange-500 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-red-600">
+                      <SelectItem value="auto" className="text-orange-500">🎯 Auto (Smart Detection)</SelectItem>
+                      <SelectItem value="study" className="text-orange-500">📚 Study Model</SelectItem>
+                      <SelectItem value="coding" className="text-orange-500">💻 Coding Model</SelectItem>
+                      <SelectItem value="fast" className="text-orange-500">⚡ Fast Model</SelectItem>
+                      <SelectItem value="image" className="text-orange-500">🖼️ Image Model</SelectItem>
+                      <SelectItem value="video" className="text-orange-500">🎥 Video Model</SelectItem>
+                      <SelectItem value="uiux" className="text-orange-500">🎨 UI/UX Model</SelectItem>
+                      <SelectItem value="ppt" className="text-orange-500">📊 PPT Model</SelectItem>
+                      <SelectItem value="canvas" className="text-orange-500">🎭 Canvas Model</SelectItem>
+                      <SelectItem value="game" className="text-orange-500">🎮 Game Model</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Message Input */}
+                <div className="flex gap-2">
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    placeholder="Ask the devil anything... 😈"
+                    className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800 min-h-[60px] resize-none"
+                    disabled={loading}
+                  />
+                  <Button
+                    onClick={sendMessage}
+                    disabled={!message.trim() || loading}
+                    className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold px-8"
+                  >
+                    🔥
+                  </Button>
+                </div>
               </div>
             </div>
           </>
