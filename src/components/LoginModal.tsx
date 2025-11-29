@@ -28,7 +28,7 @@ export default function LoginModal({ open, onClose, onRequestAccess, onLogin }: 
     try {
       await onLogin(username, password, isAdmin);
     } catch (err) {
-      setError("Invalid credentials. The devil rejects you! 👹");
+      setError("Access denied. Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -36,72 +36,75 @@ export default function LoginModal({ open, onClose, onRequestAccess, onLogin }: 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="devil-card max-w-md border-2 border-red-600">
+      <DialogContent className="command-palette max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-3xl glitch-text neon-text text-center">
-            Enter the Abyss
+          <DialogTitle className="text-2xl font-mono text-primary text-center">
+            Developer Access Required
           </DialogTitle>
+          <p className="text-sm text-muted-foreground font-mono text-center mt-2">
+            Authenticate to enter the workspace
+          </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* Toggle Admin/User */}
-          <div className="flex gap-2 p-1 bg-black/50 rounded-lg border border-red-600">
+          <div className="flex gap-2 p-1 bg-input rounded border border-border">
             <button
               type="button"
               onClick={() => setIsAdmin(false)}
-              className={`flex-1 py-2 rounded transition-all ${
+              className={`flex-1 py-2 rounded transition-all font-mono text-sm ${
                 !isAdmin
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold"
-                  : "text-red-500 hover:text-red-400"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              User Login
+              User
             </button>
             <button
               type="button"
               onClick={() => setIsAdmin(true)}
-              className={`flex-1 py-2 rounded transition-all ${
+              className={`flex-1 py-2 rounded transition-all font-mono text-sm ${
                 isAdmin
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold"
-                  : "text-red-500 hover:text-red-400"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Admin Login
+              Admin
             </button>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-red-400">
-              {isAdmin ? "Admin ID" : "Username"}
+            <Label htmlFor="username" className="text-foreground font-mono text-sm">
+              <span className="text-primary">{'>'}</span> {isAdmin ? "admin_id" : "username"}
             </Label>
             <Input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800"
-              placeholder={isAdmin ? "devilbaby" : "Enter your username"}
+              className="bg-input border-border text-foreground font-mono vscode-hover"
+              placeholder={isAdmin ? "devilbaby" : "enter username"}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-red-400">
-              Password
+            <Label htmlFor="password" className="text-foreground font-mono text-sm">
+              <span className="text-primary">{'>'}</span> password
             </Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800"
-              placeholder="Enter the secret spell"
+              className="bg-input border-border text-foreground font-mono vscode-hover"
+              placeholder="enter password"
               required
             />
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center p-2 bg-red-950/50 rounded border border-red-600">
+            <div className="text-destructive text-sm text-center p-3 bg-destructive/10 rounded border border-destructive font-mono">
               {error}
             </div>
           )}
@@ -109,27 +112,27 @@ export default function LoginModal({ open, onClose, onRequestAccess, onLogin }: 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold text-lg py-6"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono text-base py-6 vscode-hover"
           >
-            {loading ? "Summoning..." : "🔥 Enter Hell 🔥"}
+            {loading ? "Authenticating..." : "Access Workspace"}
           </Button>
 
-          <div className="text-center space-y-2">
-            <p className="text-red-600 text-sm">Don't have access?</p>
+          <div className="text-center space-y-2 pt-2 border-t border-border">
+            <p className="text-muted-foreground text-sm font-mono">Need access?</p>
             <button
               type="button"
               onClick={onRequestAccess}
-              className="text-orange-500 hover:text-orange-400 underline text-sm"
+              className="text-primary hover:text-primary/80 underline text-sm font-mono"
             >
-              Request ID/PASS from the Devil →
+              Request Access →
             </button>
           </div>
         </form>
 
-        {/* Decorative demon eyes */}
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex gap-8">
-          <div className="w-4 h-4 rounded-full bg-red-600 demon-eyes shadow-[0_0_20px_rgba(255,0,0,0.8)]" />
-          <div className="w-4 h-4 rounded-full bg-red-600 demon-eyes shadow-[0_0_20px_rgba(255,0,0,0.8)]" />
+        {/* Decorative indicator */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-8">
+          <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
+          <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_var(--primary)] terminal-cursor" />
         </div>
       </DialogContent>
     </Dialog>

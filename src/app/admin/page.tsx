@@ -505,94 +505,96 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="text-6xl neon-text glitch-text">⚡</div>
-          <p className="text-orange-500 animate-pulse">Loading Hell's Dashboard...</p>
+          <div className="text-6xl text-primary">⚡</div>
+          <p className="text-foreground animate-pulse font-mono">Loading System Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-red-500 p-8">
-      <div className="fog-overlay" />
+    <div className="min-h-screen bg-background text-foreground p-8">
+      <div className="grid-background" />
       
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-5xl font-bold glitch-text neon-text mb-2">
-              👹 DEVIL DEV Control Panel
+            <h1 className="text-4xl font-bold text-primary mb-2 font-mono flex items-center gap-3">
+              <span className="text-5xl">⚡</span>
+              <span className="neon-underline">DEVIL DEV</span>
+              <span className="text-2xl text-muted-foreground">/ Command Center</span>
             </h1>
-            <p className="text-orange-500">Developer + Game Dev + UI/UX AI Platform</p>
+            <p className="text-muted-foreground font-mono text-sm">Developer + Game Dev + UI/UX AI Platform</p>
           </div>
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="border-red-600 text-red-500 hover:bg-red-950"
+            className="border-border text-foreground hover:bg-accent/10 font-mono vscode-hover"
           >
-            🔥 Logout
+            ← Logout
           </Button>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="bg-black/50 border border-red-600 flex-wrap h-auto">
-            <TabsTrigger value="requests">Requests ({requests.filter(r => r.status === "pending").length})</TabsTrigger>
-            <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
-            <TabsTrigger value="keys">🔑 API Keys</TabsTrigger>
-            <TabsTrigger value="ui-texts">📝 UI Texts</TabsTrigger>
-            <TabsTrigger value="splash">🎬 Splash</TabsTrigger>
-            <TabsTrigger value="themes">🎨 Themes</TabsTrigger>
-            <TabsTrigger value="models">🤖 Model Routing</TabsTrigger>
-            <TabsTrigger value="plugins">🔌 Plugins</TabsTrigger>
-            <TabsTrigger value="notes">📢 System Notes</TabsTrigger>
-            <TabsTrigger value="analytics">📊 Analytics</TabsTrigger>
-            <TabsTrigger value="settings">⚙️ Settings</TabsTrigger>
+          <TabsList className="bg-card/50 border border-border flex-wrap h-auto font-mono">
+            <TabsTrigger value="requests" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Requests ({requests.filter(r => r.status === "pending").length})</TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Users ({users.length})</TabsTrigger>
+            <TabsTrigger value="keys" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">🔑 API Keys</TabsTrigger>
+            <TabsTrigger value="ui-texts" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">📝 UI Texts</TabsTrigger>
+            <TabsTrigger value="splash" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">🎬 Splash</TabsTrigger>
+            <TabsTrigger value="themes" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">🎨 Themes</TabsTrigger>
+            <TabsTrigger value="models" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">🤖 Routing</TabsTrigger>
+            <TabsTrigger value="plugins" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">🔌 Plugins</TabsTrigger>
+            <TabsTrigger value="notes" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">📢 Notes</TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">📊 Analytics</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">⚙️ Settings</TabsTrigger>
           </TabsList>
 
           {/* Access Requests Tab */}
           <TabsContent value="requests" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">Pending Soul Requests</h2>
-              <Button onClick={handleExportCSV} className="bg-gradient-to-r from-red-600 to-orange-500 text-black">
+              <h2 className="text-2xl text-primary font-mono">Access Requests</h2>
+              <Button onClick={handleExportCSV} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
                 📥 Export CSV
               </Button>
             </div>
 
-            <Card className="devil-card">
+            <Card className="terminal-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-red-600">
-                    <TableHead className="text-orange-500">Name</TableHead>
-                    <TableHead className="text-orange-500">Email</TableHead>
-                    <TableHead className="text-orange-500">Category</TableHead>
-                    <TableHead className="text-orange-500">Reason</TableHead>
-                    <TableHead className="text-orange-500">Status</TableHead>
-                    <TableHead className="text-orange-500">Actions</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-primary font-mono">Name</TableHead>
+                    <TableHead className="text-primary font-mono">Email</TableHead>
+                    <TableHead className="text-primary font-mono">Category</TableHead>
+                    <TableHead className="text-primary font-mono">Reason</TableHead>
+                    <TableHead className="text-primary font-mono">Status</TableHead>
+                    <TableHead className="text-primary font-mono">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {requests.map((request) => (
-                    <TableRow key={request.id} className="border-red-600/30">
-                      <TableCell className="text-red-400">{request.name}</TableCell>
-                      <TableCell className="text-red-400">{request.email}</TableCell>
+                    <TableRow key={request.id} className="border-border/30">
+                      <TableCell className="text-foreground font-mono">{request.name}</TableCell>
+                      <TableCell className="text-foreground font-mono text-sm">{request.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="border-orange-500 text-orange-500">
+                        <Badge variant="outline" className="border-accent text-accent font-mono">
                           {request.category}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-red-400 max-w-xs truncate">{request.reason}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm max-w-xs truncate">{request.reason}</TableCell>
                       <TableCell>
                         <Badge
                           variant={request.status === "approved" ? "default" : request.status === "rejected" ? "destructive" : "outline"}
                           className={
                             request.status === "pending"
-                              ? "border-yellow-500 text-yellow-500"
+                              ? "border-yellow-500 text-yellow-500 font-mono"
                               : request.status === "approved"
-                              ? "bg-green-600"
-                              : "bg-red-600"
+                              ? "bg-green-600 font-mono"
+                              : "bg-destructive font-mono"
                           }
                         >
                           {request.status}
@@ -601,11 +603,11 @@ export default function AdminDashboard() {
                       <TableCell>
                         {request.status === "pending" && (
                           <div className="flex gap-2">
-                            <Button size="sm" onClick={() => handleApproveRequest(request.id)} className="bg-green-600 hover:bg-green-700 text-white">
-                              ✓ Approve
+                            <Button size="sm" onClick={() => handleApproveRequest(request.id)} className="bg-green-600 hover:bg-green-700 text-white font-mono vscode-hover">
+                              ✓
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleRejectRequest(request.id)}>
-                              ✗ Reject
+                            <Button size="sm" variant="destructive" onClick={() => handleRejectRequest(request.id)} className="font-mono vscode-hover">
+                              ✗
                             </Button>
                           </div>
                         )}
@@ -614,8 +616,8 @@ export default function AdminDashboard() {
                   ))}
                   {requests.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-orange-500 py-8">
-                        No souls seeking entry... yet 👹
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8 font-mono">
+                        No pending requests
                       </TableCell>
                     </TableRow>
                   )}
@@ -627,35 +629,35 @@ export default function AdminDashboard() {
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">Damned Souls</h2>
-              <Button onClick={() => setShowCreateUser(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Create User
+              <h2 className="text-2xl text-primary font-mono">System Users</h2>
+              <Button onClick={() => setShowCreateUser(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Create User
               </Button>
             </div>
 
-            <Card className="devil-card">
+            <Card className="terminal-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-red-600">
-                    <TableHead className="text-orange-500">User ID</TableHead>
-                    <TableHead className="text-orange-500">Username</TableHead>
-                    <TableHead className="text-orange-500">Created</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-primary font-mono">User ID</TableHead>
+                    <TableHead className="text-primary font-mono">Username</TableHead>
+                    <TableHead className="text-primary font-mono">Created</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
-                    <TableRow key={user.id} className="border-red-600/30">
-                      <TableCell className="text-red-400 font-mono">{user.id}</TableCell>
-                      <TableCell className="text-red-400">{user.username}</TableCell>
-                      <TableCell className="text-red-400">
+                    <TableRow key={user.id} className="border-border/30">
+                      <TableCell className="text-foreground font-mono text-sm">{user.id}</TableCell>
+                      <TableCell className="text-foreground font-mono">{user.username}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
                   ))}
                   {users.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-orange-500 py-8">
-                        No users yet. Create the first soul! 🔥
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8 font-mono">
+                        No users yet
                       </TableCell>
                     </TableRow>
                   )}
@@ -667,39 +669,39 @@ export default function AdminDashboard() {
           {/* API Keys Tab */}
           <TabsContent value="keys" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">🔑 API Key Vault (AES-256-GCM Encrypted)</h2>
-              <Button onClick={() => setShowAddKey(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Add Key
+              <h2 className="text-2xl text-primary font-mono">🔑 API Key Vault</h2>
+              <Button onClick={() => setShowAddKey(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Add Key
               </Button>
             </div>
 
-            <Card className="devil-card">
+            <Card className="terminal-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-red-600">
-                    <TableHead className="text-orange-500">Key Name</TableHead>
-                    <TableHead className="text-orange-500">Created By</TableHead>
-                    <TableHead className="text-orange-500">Created At</TableHead>
-                    <TableHead className="text-orange-500">Actions</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-primary font-mono">Key Name</TableHead>
+                    <TableHead className="text-primary font-mono">Created By</TableHead>
+                    <TableHead className="text-primary font-mono">Created At</TableHead>
+                    <TableHead className="text-primary font-mono">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {apiKeys.map((key) => (
-                    <TableRow key={key.id} className="border-red-600/30">
-                      <TableCell className="text-red-400 font-mono">{key.key_name}</TableCell>
-                      <TableCell className="text-red-400">{key.created_by}</TableCell>
-                      <TableCell className="text-red-400">{new Date(key.created_at).toLocaleDateString()}</TableCell>
+                    <TableRow key={key.id} className="border-border/30">
+                      <TableCell className="text-foreground font-mono text-sm">{key.key_name}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">{key.created_by}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">{new Date(key.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteApiKey(key.key_name)}>
-                          🗑️ Delete
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteApiKey(key.key_name)} className="font-mono vscode-hover">
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {apiKeys.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-orange-500 py-8">
-                        No API keys configured. Add your first key! 🔐
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8 font-mono">
+                        No API keys configured
                       </TableCell>
                     </TableRow>
                   )}
@@ -711,28 +713,28 @@ export default function AdminDashboard() {
           {/* UI Texts Tab */}
           <TabsContent value="ui-texts" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">📝 UI Text Manager</h2>
-              <Button onClick={() => setShowAddText(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Add Text
+              <h2 className="text-2xl text-primary font-mono">📝 UI Text Manager</h2>
+              <Button onClick={() => setShowAddText(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Add Text
               </Button>
             </div>
 
-            <Card className="devil-card">
+            <Card className="terminal-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-red-600">
-                    <TableHead className="text-orange-500">Key</TableHead>
-                    <TableHead className="text-orange-500">Value</TableHead>
-                    <TableHead className="text-orange-500">Category</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-primary font-mono">Key</TableHead>
+                    <TableHead className="text-primary font-mono">Value</TableHead>
+                    <TableHead className="text-primary font-mono">Category</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {uiTexts.map((text) => (
-                    <TableRow key={text.id} className="border-red-600/30">
-                      <TableCell className="text-red-400 font-mono">{text.key}</TableCell>
-                      <TableCell className="text-red-400 max-w-md truncate">{text.value}</TableCell>
+                    <TableRow key={text.id} className="border-border/30">
+                      <TableCell className="text-foreground font-mono text-sm">{text.key}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm max-w-md truncate">{text.value}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="border-orange-500 text-orange-500">
+                        <Badge variant="outline" className="border-accent text-accent font-mono">
                           {text.category}
                         </Badge>
                       </TableCell>
@@ -740,8 +742,8 @@ export default function AdminDashboard() {
                   ))}
                   {uiTexts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-orange-500 py-8">
-                        No UI texts configured. Add your first text! 📝
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8 font-mono">
+                        No UI texts configured
                       </TableCell>
                     </TableRow>
                   )}
@@ -753,25 +755,25 @@ export default function AdminDashboard() {
           {/* Splash Manager Tab */}
           <TabsContent value="splash" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">🎬 Splash Screen Manager</h2>
+              <h2 className="text-2xl text-primary font-mono">🎬 Splash Screen</h2>
               <div className="flex gap-2">
-                <Button onClick={() => setShowSplashConfig(true)} className="bg-gradient-to-r from-red-600 to-orange-500 text-black">
-                  ⚙️ Configure
+                <Button onClick={() => setShowSplashConfig(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                  Configure
                 </Button>
-                <Button onClick={() => setShowUploadVideo(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black">
-                  📤 Upload Video
+                <Button onClick={() => setShowUploadVideo(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                  Upload Video
                 </Button>
               </div>
             </div>
 
-            <Card className="devil-card p-6">
-              <div className="space-y-4 text-red-400">
-                <p><strong>Title:</strong> {splashConfig.title}</p>
-                <p><strong>Subtitle:</strong> {splashConfig.subtitle}</p>
-                <p><strong>Duration:</strong> {splashConfig.duration}s</p>
-                <p><strong>Screen Shake:</strong> {splashConfig.screenShake ? "✓ Enabled" : "✗ Disabled"}</p>
-                <p><strong>Fire Particles:</strong> {splashConfig.fireParticles ? "✓ Enabled" : "✗ Disabled"}</p>
-                <p><strong>Fog Layer:</strong> {splashConfig.fogLayer ? "✓ Enabled" : "✗ Disabled"}</p>
+            <Card className="terminal-card p-6">
+              <div className="space-y-3 text-foreground font-mono text-sm">
+                <p><span className="text-primary">Title:</span> {splashConfig.title}</p>
+                <p><span className="text-primary">Subtitle:</span> {splashConfig.subtitle}</p>
+                <p><span className="text-primary">Duration:</span> {splashConfig.duration}s</p>
+                <p><span className="text-primary">Screen Shake:</span> {splashConfig.screenShake ? "✓ Enabled" : "✗ Disabled"}</p>
+                <p><span className="text-primary">Fire Particles:</span> {splashConfig.fireParticles ? "✓ Enabled" : "✗ Disabled"}</p>
+                <p><span className="text-primary">Fog Layer:</span> {splashConfig.fogLayer ? "✓ Enabled" : "✗ Disabled"}</p>
               </div>
             </Card>
           </TabsContent>
@@ -779,36 +781,34 @@ export default function AdminDashboard() {
           {/* Themes Tab */}
           <TabsContent value="themes" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">🎨 Theme Engine</h2>
-              <Button onClick={() => setShowAddTheme(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Create Theme
+              <h2 className="text-2xl text-primary font-mono">🎨 Theme Engine</h2>
+              <Button onClick={() => setShowAddTheme(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Create Theme
               </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {themes.map((theme) => (
-                <Card key={theme.id} className="devil-card p-4">
+                <Card key={theme.id} className="terminal-card p-4">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl text-red-400 font-bold">{theme.name}</h3>
+                    <h3 className="text-lg text-primary font-mono">{theme.name}</h3>
                     {theme.isDefault && (
-                      <Badge className="bg-orange-500 text-black">Default</Badge>
+                      <Badge className="bg-accent text-accent-foreground font-mono">Default</Badge>
                     )}
                   </div>
                   <div className="flex gap-2 mb-3">
-                    <div className="w-8 h-8 rounded" style={{ backgroundColor: theme.primaryColor }} />
-                    <div className="w-8 h-8 rounded" style={{ backgroundColor: theme.accentColor }} />
-                    <div className="w-8 h-8 rounded" style={{ backgroundColor: theme.backgroundColor }} />
+                    <div className="w-8 h-8 rounded border border-border" style={{ backgroundColor: theme.primaryColor }} />
+                    <div className="w-8 h-8 rounded border border-border" style={{ backgroundColor: theme.accentColor }} />
+                    <div className="w-8 h-8 rounded border border-border" style={{ backgroundColor: theme.backgroundColor }} />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <Badge variant={theme.isEnabled ? "default" : "outline"} className={theme.isEnabled ? "bg-green-600" : "border-gray-500 text-gray-500"}>
-                      {theme.isEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
+                  <Badge variant={theme.isEnabled ? "default" : "outline"} className={theme.isEnabled ? "bg-green-600 font-mono" : "border-muted text-muted-foreground font-mono"}>
+                    {theme.isEnabled ? "Active" : "Inactive"}
+                  </Badge>
                 </Card>
               ))}
               {themes.length === 0 && (
-                <div className="col-span-full text-center text-orange-500 py-8">
-                  No themes yet. Create your first theme! 🎨
+                <div className="col-span-full text-center text-muted-foreground py-8 font-mono">
+                  No themes configured
                 </div>
               )}
             </div>
@@ -817,52 +817,52 @@ export default function AdminDashboard() {
           {/* Model Routing Tab */}
           <TabsContent value="models" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">🤖 Model Routing Rules</h2>
-              <Button onClick={() => setShowAddRule(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Add Rule
+              <h2 className="text-2xl text-primary font-mono">🤖 Model Routing</h2>
+              <Button onClick={() => setShowAddRule(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Add Rule
               </Button>
             </div>
 
-            <Card className="devil-card">
+            <Card className="terminal-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-red-600">
-                    <TableHead className="text-orange-500">Rule Name</TableHead>
-                    <TableHead className="text-orange-500">Trigger</TableHead>
-                    <TableHead className="text-orange-500">Target Model</TableHead>
-                    <TableHead className="text-orange-500">Priority</TableHead>
-                    <TableHead className="text-orange-500">Status</TableHead>
-                    <TableHead className="text-orange-500">Actions</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-primary font-mono">Rule Name</TableHead>
+                    <TableHead className="text-primary font-mono">Trigger</TableHead>
+                    <TableHead className="text-primary font-mono">Target Model</TableHead>
+                    <TableHead className="text-primary font-mono">Priority</TableHead>
+                    <TableHead className="text-primary font-mono">Status</TableHead>
+                    <TableHead className="text-primary font-mono">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {modelRules.map((rule) => (
-                    <TableRow key={rule.id} className="border-red-600/30">
-                      <TableCell className="text-red-400">{rule.ruleName}</TableCell>
-                      <TableCell className="text-red-400">
-                        <Badge variant="outline" className="border-orange-500 text-orange-500 mr-2">
+                    <TableRow key={rule.id} className="border-border/30">
+                      <TableCell className="text-foreground font-mono">{rule.ruleName}</TableCell>
+                      <TableCell className="text-foreground font-mono text-sm">
+                        <Badge variant="outline" className="border-accent text-accent font-mono mr-2">
                           {rule.triggerType}
                         </Badge>
-                        <span className="text-sm">{rule.triggerValue}</span>
+                        <span className="text-muted-foreground">{rule.triggerValue}</span>
                       </TableCell>
-                      <TableCell className="text-red-400 font-mono text-sm">{rule.targetModel}</TableCell>
-                      <TableCell className="text-red-400">{rule.priority}</TableCell>
+                      <TableCell className="text-foreground font-mono text-xs">{rule.targetModel}</TableCell>
+                      <TableCell className="text-foreground font-mono">{rule.priority}</TableCell>
                       <TableCell>
-                        <Badge variant={rule.isEnabled ? "default" : "outline"} className={rule.isEnabled ? "bg-green-600" : "border-gray-500 text-gray-500"}>
+                        <Badge variant={rule.isEnabled ? "default" : "outline"} className={rule.isEnabled ? "bg-green-600 font-mono" : "border-muted text-muted-foreground font-mono"}>
                           {rule.isEnabled ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteModelRule(rule.id)}>
-                          🗑️
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteModelRule(rule.id)} className="font-mono vscode-hover">
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {modelRules.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-orange-500 py-8">
-                        No routing rules configured. Add your first rule! 🤖
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8 font-mono">
+                        No routing rules configured
                       </TableCell>
                     </TableRow>
                   )}
@@ -874,16 +874,16 @@ export default function AdminDashboard() {
           {/* Plugins Tab */}
           <TabsContent value="plugins" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">🔌 Plugin Manager</h2>
+              <h2 className="text-2xl text-primary font-mono">🔌 Plugin Manager</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {plugins.map((plugin) => (
-                <Card key={plugin.id} className="devil-card p-4">
+                <Card key={plugin.id} className="terminal-card p-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-lg text-red-400 font-bold">{plugin.pluginName}</h3>
-                      <p className="text-sm text-orange-500">{plugin.pluginType}</p>
+                      <h3 className="text-lg text-primary font-mono">{plugin.pluginName}</h3>
+                      <p className="text-sm text-muted-foreground font-mono">{plugin.pluginType}</p>
                     </div>
                     <Switch
                       checked={plugin.isEnabled}
@@ -893,8 +893,8 @@ export default function AdminDashboard() {
                 </Card>
               ))}
               {plugins.length === 0 && (
-                <div className="col-span-full text-center text-orange-500 py-8">
-                  No plugins available. 🔌
+                <div className="col-span-full text-center text-muted-foreground py-8 font-mono">
+                  No plugins available
                 </div>
               )}
             </div>
@@ -903,69 +903,69 @@ export default function AdminDashboard() {
           {/* System Notes Tab */}
           <TabsContent value="notes" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl text-red-400">📢 System Announcements</h2>
-              <Button onClick={() => setShowAddNote(true)} className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-                ➕ Create Note
+              <h2 className="text-2xl text-primary font-mono">📢 System Notes</h2>
+              <Button onClick={() => setShowAddNote(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+                + Create Note
               </Button>
             </div>
 
             <div className="space-y-4">
               {systemNotes.map((note) => (
-                <Card key={note.id} className="devil-card p-4">
+                <Card key={note.id} className="terminal-card p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg text-red-400 font-bold">{note.title}</h3>
-                        <Badge variant="outline" className="border-orange-500 text-orange-500">
+                        <h3 className="text-lg text-primary font-mono">{note.title}</h3>
+                        <Badge variant="outline" className="border-accent text-accent font-mono">
                           {note.noteType}
                         </Badge>
                         {note.isActive && (
-                          <Badge className="bg-green-600 text-white">Active</Badge>
+                          <Badge className="bg-green-600 text-white font-mono">Active</Badge>
                         )}
                       </div>
-                      <p className="text-red-400 text-sm">{note.message}</p>
-                      <p className="text-orange-500 text-xs mt-2">
+                      <p className="text-foreground text-sm font-mono">{note.message}</p>
+                      <p className="text-muted-foreground text-xs mt-2 font-mono">
                         {new Date(note.createdAt).toLocaleString()}
                       </p>
                     </div>
-                    <Button size="sm" variant="destructive" onClick={() => handleDeleteSystemNote(note.id)}>
-                      🗑️
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteSystemNote(note.id)} className="font-mono vscode-hover">
+                      Delete
                     </Button>
                   </div>
                 </Card>
               ))}
               {systemNotes.length === 0 && (
-                <Card className="devil-card p-8 text-center text-orange-500">
-                  No system notes. Create your first announcement! 📢
+                <Card className="terminal-card p-8 text-center text-muted-foreground font-mono">
+                  No system notes
                 </Card>
               )}
             </div>
           </TabsContent>
 
-          {/* Analytics Tab - Placeholder */}
+          {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4">
-            <h2 className="text-2xl text-red-400">📊 Analytics Dashboard</h2>
-            <Card className="devil-card p-6 text-center text-orange-500">
-              <p>Analytics dashboard coming soon! 📊</p>
-              <p className="text-sm mt-2">Track model usage, token consumption, and user activity.</p>
+            <h2 className="text-2xl text-primary font-mono">📊 Analytics Dashboard</h2>
+            <Card className="terminal-card p-6 text-center text-muted-foreground font-mono">
+              <p className="text-lg mb-2">Analytics dashboard coming soon</p>
+              <p className="text-sm">Track model usage, token consumption, and user activity</p>
             </Card>
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
-            <h2 className="text-2xl text-red-400">Hell's Configuration</h2>
+            <h2 className="text-2xl text-primary font-mono">⚙️ System Configuration</h2>
             
-            <Card className="devil-card p-6 space-y-6">
-              <div className="border-t border-red-600 pt-6">
-                <h3 className="text-xl text-orange-500 mb-2">👹 System Info</h3>
-                <div className="space-y-2 text-sm">
-                  <p className="text-red-400">Platform: <span className="text-orange-500">I AM DEVIL v2.0</span></p>
-                  <p className="text-red-400">Admin ID: <span className="text-orange-500 font-mono">devilbaby</span></p>
-                  <p className="text-red-400">Total Users: <span className="text-orange-500">{users.length}</span></p>
-                  <p className="text-red-400">API Keys: <span className="text-orange-500">{apiKeys.length}</span></p>
-                  <p className="text-red-400">Themes: <span className="text-orange-500">{themes.length}</span></p>
-                  <p className="text-red-400">Active Rules: <span className="text-orange-500">{modelRules.filter(r => r.isEnabled).length}</span></p>
-                  <p className="text-red-400">Active Plugins: <span className="text-orange-500">{plugins.filter(p => p.isEnabled).length}</span></p>
+            <Card className="terminal-card p-6 space-y-6">
+              <div className="border-t border-border pt-6">
+                <h3 className="text-xl text-primary mb-4 font-mono">System Info</h3>
+                <div className="space-y-2 text-sm font-mono">
+                  <p className="text-foreground">Platform: <span className="text-primary">DEVIL DEV v2.0</span></p>
+                  <p className="text-foreground">Admin ID: <span className="text-primary">devilbaby</span></p>
+                  <p className="text-foreground">Total Users: <span className="text-primary">{users.length}</span></p>
+                  <p className="text-foreground">API Keys: <span className="text-primary">{apiKeys.length}</span></p>
+                  <p className="text-foreground">Themes: <span className="text-primary">{themes.length}</span></p>
+                  <p className="text-foreground">Active Rules: <span className="text-primary">{modelRules.filter(r => r.isEnabled).length}</span></p>
+                  <p className="text-foreground">Active Plugins: <span className="text-primary">{plugins.filter(p => p.isEnabled).length}</span></p>
                 </div>
               </div>
             </Card>
@@ -975,34 +975,34 @@ export default function AdminDashboard() {
 
       {/* Create User Modal */}
       <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Create New Soul</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Create New User</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateUser} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Username</Label>
+              <Label className="text-foreground font-mono">Username</Label>
               <Input
                 value={newUser.username}
                 onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono vscode-hover"
                 placeholder="Enter username"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Password</Label>
+              <Label className="text-foreground font-mono">Password</Label>
               <Input
                 type="password"
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono vscode-hover"
                 placeholder="Enter password"
                 required
               />
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-              🔥 Create User
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+              Create User
             </Button>
           </form>
         </DialogContent>
@@ -1010,24 +1010,24 @@ export default function AdminDashboard() {
 
       {/* Upload Video Modal */}
       <Dialog open={showUploadVideo} onOpenChange={setShowUploadVideo}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Upload Intro Video</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Upload Intro Video</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUploadVideo} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Video File (MP4)</Label>
+              <Label className="text-foreground font-mono">Video File (MP4)</Label>
               <Input
                 type="file"
                 accept="video/mp4"
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 required
               />
-              <p className="text-xs text-red-600">Max size: 50MB. Will auto-play for 5 seconds on splash screen.</p>
+              <p className="text-xs text-muted-foreground font-mono">Max size: 50MB</p>
             </div>
-            <Button type="submit" disabled={!videoFile} className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-              🔥 Upload
+            <Button type="submit" disabled={!videoFile} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+              Upload
             </Button>
           </form>
         </DialogContent>
@@ -1035,41 +1035,41 @@ export default function AdminDashboard() {
 
       {/* Add API Key Modal */}
       <Dialog open={showAddKey} onOpenChange={setShowAddKey}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Add API Key (DEVIL DEV)</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Add API Key</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddApiKey} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Key Type</Label>
+              <Label className="text-foreground font-mono">Key Type</Label>
               <Select value={newKey.key_name} onValueChange={(value) => setNewKey({ ...newKey, key_name: value })}>
-                <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
+                <SelectTrigger className="bg-input border-border text-foreground font-mono vscode-hover">
                   <SelectValue placeholder="Select key type" />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-red-600">
-                  <SelectItem value="main_brain_key" className="text-orange-500">🧠 Main Brain Key (General Dev AI)</SelectItem>
-                  <SelectItem value="coding_key" className="text-orange-500">💻 Coding Key (Debug, Backend, API)</SelectItem>
-                  <SelectItem value="uiux_key" className="text-orange-500">🎨 UI/UX Key (Design, Mockups)</SelectItem>
-                  <SelectItem value="game_dev_key" className="text-orange-500">🎮 Game Dev Key (Game Logic, Story)</SelectItem>
-                  <SelectItem value="image_key" className="text-orange-500">🖼️ Image Key (UI Assets, Game Art)</SelectItem>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="main_brain_key" className="text-foreground font-mono">🧠 Main Brain Key</SelectItem>
+                  <SelectItem value="coding_key" className="text-foreground font-mono">💻 Coding Key</SelectItem>
+                  <SelectItem value="uiux_key" className="text-foreground font-mono">🎨 UI/UX Key</SelectItem>
+                  <SelectItem value="game_dev_key" className="text-foreground font-mono">🎮 Game Dev Key</SelectItem>
+                  <SelectItem value="image_key" className="text-foreground font-mono">🖼️ Image Key</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-orange-500/60">→ Auto-router will select the best model for each task</p>
+              <p className="text-xs text-muted-foreground font-mono">Auto-router will select the best model</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">OpenRouter API Key</Label>
+              <Label className="text-foreground font-mono">OpenRouter API Key</Label>
               <Input
                 type="password"
                 value={newKey.value}
                 onChange={(e) => setNewKey({ ...newKey, value: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono vscode-hover"
                 placeholder="sk-or-v1-..."
                 required
               />
-              <p className="text-xs text-orange-500">🔒 Encrypted with AES-256-GCM</p>
+              <p className="text-xs text-muted-foreground font-mono">🔒 AES-256-GCM encrypted</p>
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-              🔐 Save Key
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+              Save Key
             </Button>
           </form>
         </DialogContent>
@@ -1077,49 +1077,49 @@ export default function AdminDashboard() {
 
       {/* Add UI Text Modal */}
       <Dialog open={showAddText} onOpenChange={setShowAddText}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Add/Edit UI Text</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Add UI Text</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddUiText} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Text Key</Label>
+              <Label className="text-foreground font-mono">Text Key</Label>
               <Input
                 value={newText.key}
                 onChange={(e) => setNewText({ ...newText, key: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono vscode-hover"
                 placeholder="e.g., splash_title"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Text Value</Label>
+              <Label className="text-foreground font-mono">Text Value</Label>
               <Textarea
                 value={newText.value}
                 onChange={(e) => setNewText({ ...newText, value: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono vscode-hover"
                 placeholder="Enter text content"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Category</Label>
+              <Label className="text-foreground font-mono">Category</Label>
               <Select value={newText.category} onValueChange={(value) => setNewText({ ...newText, category: value })}>
-                <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
+                <SelectTrigger className="bg-input border-border text-foreground font-mono vscode-hover">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-red-600">
-                  <SelectItem value="splash">Splash Screen</SelectItem>
-                  <SelectItem value="login">Login</SelectItem>
-                  <SelectItem value="chat">Chat</SelectItem>
-                  <SelectItem value="buttons">Buttons</SelectItem>
-                  <SelectItem value="messages">Messages</SelectItem>
-                  <SelectItem value="errors">Errors</SelectItem>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="splash" className="font-mono">Splash</SelectItem>
+                  <SelectItem value="login" className="font-mono">Login</SelectItem>
+                  <SelectItem value="chat" className="font-mono">Chat</SelectItem>
+                  <SelectItem value="buttons" className="font-mono">Buttons</SelectItem>
+                  <SelectItem value="messages" className="font-mono">Messages</SelectItem>
+                  <SelectItem value="errors" className="font-mono">Errors</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
-              💾 Save Text
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
+              Save Text
             </Button>
           </form>
         </DialogContent>
@@ -1127,78 +1127,78 @@ export default function AdminDashboard() {
 
       {/* Add Theme Modal */}
       <Dialog open={showAddTheme} onOpenChange={setShowAddTheme}>
-        <DialogContent className="devil-card border-2 border-red-600 max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Create New Theme</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Create New Theme</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddTheme} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-red-400">Theme Name</Label>
+                <Label className="text-foreground font-mono">Theme Name</Label>
                 <Input
                   value={newTheme.name}
                   onChange={(e) => setNewTheme({ ...newTheme, name: e.target.value })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                   placeholder="Devil Red"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Primary Color</Label>
+                <Label className="text-foreground font-mono">Primary Color</Label>
                 <Input
                   type="color"
                   value={newTheme.primaryColor}
                   onChange={(e) => setNewTheme({ ...newTheme, primaryColor: e.target.value })}
-                  className="bg-black/80 border-red-600 h-10"
+                  className="bg-input border-border h-10"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Accent Color</Label>
+                <Label className="text-foreground font-mono">Accent Color</Label>
                 <Input
                   type="color"
                   value={newTheme.accentColor}
                   onChange={(e) => setNewTheme({ ...newTheme, accentColor: e.target.value })}
-                  className="bg-black/80 border-red-600 h-10"
+                  className="bg-input border-border h-10"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Background Color</Label>
+                <Label className="text-foreground font-mono">Background Color</Label>
                 <Input
                   type="color"
                   value={newTheme.backgroundColor}
                   onChange={(e) => setNewTheme({ ...newTheme, backgroundColor: e.target.value })}
-                  className="bg-black/80 border-red-600 h-10"
+                  className="bg-input border-border h-10"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Glow Intensity (1-10)</Label>
+                <Label className="text-foreground font-mono">Glow Intensity (1-10)</Label>
                 <Input
                   type="number"
                   min="1"
                   max="10"
                   value={newTheme.glowIntensity}
                   onChange={(e) => setNewTheme({ ...newTheme, glowIntensity: parseInt(e.target.value) })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Smoke Density (1-10)</Label>
+                <Label className="text-foreground font-mono">Smoke Density (1-10)</Label>
                 <Input
                   type="number"
                   min="1"
                   max="10"
                   value={newTheme.smokeDensity}
                   onChange={(e) => setNewTheme({ ...newTheme, smokeDensity: parseInt(e.target.value) })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                   required
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               🎨 Create Theme
             </Button>
           </form>
@@ -1207,28 +1207,28 @@ export default function AdminDashboard() {
 
       {/* Add Model Rule Modal */}
       <Dialog open={showAddRule} onOpenChange={setShowAddRule}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Add Routing Rule</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Add Routing Rule</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddModelRule} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Rule Name</Label>
+              <Label className="text-foreground font-mono">Rule Name</Label>
               <Input
                 value={newRule.rule_name}
                 onChange={(e) => setNewRule({ ...newRule, rule_name: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 placeholder="Coding Assistant"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Trigger Type</Label>
+              <Label className="text-foreground font-mono">Trigger Type</Label>
               <Select value={newRule.trigger_type} onValueChange={(value) => setNewRule({ ...newRule, trigger_type: value })}>
-                <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
+                <SelectTrigger className="bg-input border-border text-foreground font-mono">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-red-600">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="keyword">Keyword</SelectItem>
                   <SelectItem value="file_type">File Type</SelectItem>
                   <SelectItem value="length">Request Length</SelectItem>
@@ -1237,36 +1237,36 @@ export default function AdminDashboard() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Trigger Value</Label>
+              <Label className="text-foreground font-mono">Trigger Value</Label>
               <Input
                 value={newRule.trigger_value}
                 onChange={(e) => setNewRule({ ...newRule, trigger_value: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 placeholder="code, python, debug"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Target Model</Label>
+              <Label className="text-foreground font-mono">Target Model</Label>
               <Input
                 value={newRule.target_model}
                 onChange={(e) => setNewRule({ ...newRule, target_model: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 placeholder="gpt-4-turbo"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Priority (higher = first)</Label>
+              <Label className="text-foreground font-mono">Priority (higher = first)</Label>
               <Input
                 type="number"
                 value={newRule.priority}
                 onChange={(e) => setNewRule({ ...newRule, priority: parseInt(e.target.value) })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 required
               />
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               🤖 Add Rule
             </Button>
           </form>
@@ -1275,46 +1275,46 @@ export default function AdminDashboard() {
 
       {/* Add System Note Modal */}
       <Dialog open={showAddNote} onOpenChange={setShowAddNote}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Create System Note</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Create System Note</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddSystemNote} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-red-400">Title</Label>
+              <Label className="text-foreground font-mono">Title</Label>
               <Input
                 value={newNote.title}
                 onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 placeholder="System Update"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Message</Label>
+              <Label className="text-foreground font-mono">Message</Label>
               <Textarea
                 value={newNote.message}
                 onChange={(e) => setNewNote({ ...newNote, message: e.target.value })}
-                className="bg-black/80 border-red-600 text-orange-500"
+                className="bg-input border-border text-foreground font-mono"
                 placeholder="Enter announcement message..."
                 rows={4}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-red-400">Type</Label>
+              <Label className="text-foreground font-mono">Type</Label>
               <Select value={newNote.note_type} onValueChange={(value) => setNewNote({ ...newNote, note_type: value })}>
-                <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
+                <SelectTrigger className="bg-input border-border text-foreground font-mono">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-red-600">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="announcement">📢 Announcement</SelectItem>
                   <SelectItem value="update">🆕 Update</SelectItem>
                   <SelectItem value="maintenance">⚠️ Maintenance</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               📢 Create Note
             </Button>
           </form>
@@ -1323,71 +1323,71 @@ export default function AdminDashboard() {
 
       {/* Splash Config Modal */}
       <Dialog open={showSplashConfig} onOpenChange={setShowSplashConfig}>
-        <DialogContent className="devil-card border-2 border-red-600 max-w-2xl">
+        <DialogContent className="command-palette">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Splash Configuration</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Splash Configuration</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateSplashConfig} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-red-400">Title</Label>
+                <Label className="text-foreground font-mono">Title</Label>
                 <Input
                   value={splashConfig.title}
                   onChange={(e) => setSplashConfig({ ...splashConfig, title: e.target.value })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Subtitle</Label>
+                <Label className="text-foreground font-mono">Subtitle</Label>
                 <Input
                   value={splashConfig.subtitle}
                   onChange={(e) => setSplashConfig({ ...splashConfig, subtitle: e.target.value })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Duration (seconds)</Label>
+                <Label className="text-foreground font-mono">Duration (seconds)</Label>
                 <Input
                   type="number"
                   value={splashConfig.duration}
                   onChange={(e) => setSplashConfig({ ...splashConfig, duration: parseInt(e.target.value) })}
-                  className="bg-black/80 border-red-600 text-orange-500"
+                  className="bg-input border-border text-foreground font-mono"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-red-400">Glow Color</Label>
+                <Label className="text-foreground font-mono">Glow Color</Label>
                 <Input
                   type="color"
                   value={splashConfig.glowColor}
                   onChange={(e) => setSplashConfig({ ...splashConfig, glowColor: e.target.value })}
-                  className="bg-black/80 border-red-600 h-10"
+                  className="bg-input border-border h-10"
                 />
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-red-400">Screen Shake Effect</Label>
+                <Label className="text-foreground font-mono">Screen Shake Effect</Label>
                 <Switch
                   checked={splashConfig.screenShake}
                   onCheckedChange={(checked) => setSplashConfig({ ...splashConfig, screenShake: checked })}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-red-400">Fire Particles</Label>
+                <Label className="text-foreground font-mono">Fire Particles</Label>
                 <Switch
                   checked={splashConfig.fireParticles}
                   onCheckedChange={(checked) => setSplashConfig({ ...splashConfig, fireParticles: checked })}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-red-400">Fog Layer</Label>
+                <Label className="text-foreground font-mono">Fog Layer</Label>
                 <Switch
                   checked={splashConfig.fogLayer}
                   onCheckedChange={(checked) => setSplashConfig({ ...splashConfig, fogLayer: checked })}
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 text-black font-bold">
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               💾 Save Configuration
             </Button>
           </form>

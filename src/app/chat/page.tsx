@@ -35,7 +35,7 @@ interface Chat {
   updatedAt: number;
 }
 
-const DEFAULT_FOLDERS = ["Study", "Coding", "Projects", "Notes", "Custom"];
+const DEFAULT_FOLDERS = ["New Chat", "My Projects", "Snippets", "Game Design", "UI/UX Drafts"];
 
 export default function ChatPage() {
   const router = useRouter();
@@ -92,7 +92,7 @@ export default function ChatPage() {
       id: `chat_${Date.now()}`,
       title: "New Conversation",
       messages: [],
-      folder: "Custom",
+      folder: "New Chat",
       pinned: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -210,7 +210,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: `msg_${Date.now()}`,
         role: "ai",
-        content: `🔥 Error: ${error instanceof Error ? error.message : "Failed to get response. Please check if OpenRouter API keys are configured in Admin panel."}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to get response. Please check if OpenRouter API keys are configured in Admin panel."}`,
         timestamp: Date.now(),
       };
 
@@ -243,10 +243,6 @@ export default function ChatPage() {
         content += `[${msg.role.toUpperCase()}] ${new Date(msg.timestamp).toLocaleString()}\n${msg.content}\n\n`;
       });
       filename += ".txt";
-    } else if (format === "pdf") {
-      // For PDF, we'll create a simple text version (real PDF would need a library)
-      alert("PDF export coming soon! Use TXT or JSON for now. 🔥");
-      return;
     }
 
     const blob = new Blob([content], { type: mimeType });
@@ -276,40 +272,41 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen bg-black text-red-500">
-      <div className="fog-overlay" />
+    <div className="flex h-screen bg-background text-foreground">
+      <div className="grid-background" />
 
-      {/* Sidebar */}
-      <div className="relative z-10 w-80 border-r border-red-600 bg-black/50 backdrop-blur-sm flex flex-col">
+      {/* VSCode-like Sidebar */}
+      <div className="relative z-10 w-80 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col">
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-red-600">
-          <h1 className="text-2xl font-bold glitch-text neon-text mb-4">
-            👹 DEVIL DEV
+        <div className="p-4 border-b border-border">
+          <h1 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+            <span className="text-2xl">⚡</span>
+            <span className="neon-underline">DEVIL DEV</span>
           </h1>
           <Button
             onClick={createNewChat}
-            className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono text-sm vscode-hover"
           >
-            ➕ New Chat
+            + New Chat
           </Button>
         </div>
 
         {/* Search & Filter */}
-        <div className="p-4 space-y-2 border-b border-red-600">
+        <div className="p-4 space-y-2 border-b border-border">
           <Input
-            placeholder="🔍 Search chats..."
+            placeholder="🔍 Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-black/80 border-red-600 text-orange-500"
+            className="bg-input border-border text-foreground font-mono text-sm vscode-hover"
           />
           <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-            <SelectTrigger className="bg-black/80 border-red-600 text-orange-500">
+            <SelectTrigger className="bg-input border-border text-foreground font-mono text-sm vscode-hover">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-black border-red-600">
-              <SelectItem value="All" className="text-orange-500">All Folders</SelectItem>
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="All" className="text-foreground font-mono">All Folders</SelectItem>
               {DEFAULT_FOLDERS.map((folder) => (
-                <SelectItem key={folder} value={folder} className="text-orange-500">
+                <SelectItem key={folder} value={folder} className="text-foreground font-mono">
                   📁 {folder}
                 </SelectItem>
               ))}
@@ -317,40 +314,38 @@ export default function ChatPage() {
           </Select>
         </div>
 
-        {/* Chat List */}
+        {/* Chat List - Explorer Style */}
         <ScrollArea className="flex-1 p-2">
           {filteredChats.map((chat) => (
             <div
               key={chat.id}
               onClick={() => setCurrentChatId(chat.id)}
-              className={`p-3 mb-2 rounded cursor-pointer transition-all group ${
-                currentChatId === chat.id
-                  ? "devil-card"
-                  : "bg-black/30 hover:bg-red-950/30 border border-red-600/30"
+              className={`explorer-item mb-1 ${
+                currentChatId === chat.id ? "active" : ""
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    {chat.pinned && <span className="text-orange-500">📌</span>}
-                    <p className="text-sm font-medium text-orange-500 truncate">
+                    {chat.pinned && <span className="text-primary">📌</span>}
+                    <p className="text-sm font-mono text-foreground truncate">
                       {chat.title}
                     </p>
                   </div>
-                  <p className="text-xs text-red-600 mt-1">
-                    {chat.messages.length} messages • {chat.folder}
+                  <p className="text-xs text-muted-foreground font-mono mt-1">
+                    {chat.messages.length} msgs • {chat.folder}
                   </p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 hover:bg-accent/10">
                       ⋮
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-black border-red-600">
+                  <DropdownMenuContent className="bg-card border-border">
                     <DropdownMenuItem
                       onClick={() => togglePin(chat.id)}
-                      className="text-orange-500 hover:bg-red-950"
+                      className="text-foreground hover:bg-accent/10 font-mono"
                     >
                       {chat.pinned ? "📌 Unpin" : "📌 Pin"}
                     </DropdownMenuItem>
@@ -360,13 +355,13 @@ export default function ChatPage() {
                         setCurrentChatId(chat.id);
                         setShowRenameDialog(true);
                       }}
-                      className="text-orange-500 hover:bg-red-950"
+                      className="text-foreground hover:bg-accent/10 font-mono"
                     >
                       ✏️ Rename
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => deleteChat(chat.id)}
-                      className="text-red-500 hover:bg-red-950"
+                      className="text-destructive hover:bg-destructive/10 font-mono"
                     >
                       🗑️ Delete
                     </DropdownMenuItem>
@@ -376,21 +371,21 @@ export default function ChatPage() {
             </div>
           ))}
           {filteredChats.length === 0 && (
-            <div className="text-center text-orange-500 mt-8">
-              <p className="text-4xl mb-2">👻</p>
+            <div className="text-center text-muted-foreground mt-8 font-mono">
+              <p className="text-4xl mb-2">📂</p>
               <p>No chats found</p>
             </div>
           )}
         </ScrollArea>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-red-600">
+        <div className="p-4 border-t border-border">
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="w-full border-red-600 text-red-500 hover:bg-red-950"
+            className="w-full border-border text-foreground hover:bg-accent/10 font-mono text-sm vscode-hover"
           >
-            🔥 Logout
+            ← Logout
           </Button>
         </div>
       </div>
@@ -399,25 +394,27 @@ export default function ChatPage() {
       <div className="relative z-10 flex-1 flex flex-col">
         {currentChat ? (
           <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-red-600 bg-black/50 backdrop-blur-sm flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-orange-500">{currentChat.title}</h2>
-                <p className="text-xs text-red-600">📁 {currentChat.folder}</p>
+            {/* Chat Header - Tab Style */}
+            <div className="p-3 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="px-3 py-1 bg-primary/10 border-l-2 border-primary rounded">
+                  <h2 className="text-sm font-mono font-bold text-primary">{currentChat.title}</h2>
+                </div>
+                <p className="text-xs text-muted-foreground font-mono">📁 {currentChat.folder}</p>
               </div>
               <div className="flex gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="border-red-600 text-red-500">
+                    <Button variant="outline" size="sm" className="border-border text-foreground font-mono text-xs vscode-hover">
                       📁 Move
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-black border-red-600">
+                  <DropdownMenuContent className="bg-card border-border">
                     {DEFAULT_FOLDERS.map((folder) => (
                       <DropdownMenuItem
                         key={folder}
                         onClick={() => changeChatFolder(currentChat.id, folder)}
-                        className="text-orange-500 hover:bg-red-950"
+                        className="text-foreground hover:bg-accent/10 font-mono"
                       >
                         {folder}
                       </DropdownMenuItem>
@@ -426,45 +423,36 @@ export default function ChatPage() {
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="border-red-600 text-red-500">
-                      💾 Download
+                    <Button variant="outline" size="sm" className="border-border text-foreground font-mono text-xs vscode-hover">
+                      💾 Export
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-black border-red-600">
+                  <DropdownMenuContent className="bg-card border-border">
                     <DropdownMenuItem
                       onClick={() => downloadChat("json")}
-                      className="text-orange-500 hover:bg-red-950"
+                      className="text-foreground hover:bg-accent/10 font-mono"
                     >
                       JSON
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => downloadChat("txt")}
-                      className="text-orange-500 hover:bg-red-950"
+                      className="text-foreground hover:bg-accent/10 font-mono"
                     >
                       TXT
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => downloadChat("pdf")}
-                      className="text-orange-500 hover:bg-red-950"
-                    >
-                      PDF (Soon)
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
 
-            {/* Messages */}
+            {/* Messages - Terminal Output Style */}
             <ScrollArea className="flex-1 p-6">
               {currentChat.messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center space-y-4">
-                    <div className="flex justify-center gap-8 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-red-600 demon-eyes" />
-                      <div className="w-8 h-8 rounded-full bg-red-600 demon-eyes" />
-                    </div>
-                    <p className="text-2xl glitch-text neon-text">Start building with DEVIL DEV...</p>
-                    <p className="text-orange-500">Ask about coding, UI/UX, or game development 🔥</p>
+                    <div className="text-6xl mb-4">⚡</div>
+                    <p className="text-xl font-mono text-primary">Ready to Build</p>
+                    <p className="text-sm text-muted-foreground font-mono">Ask about coding, UI/UX, or game development</p>
                   </div>
                 </div>
               ) : (
@@ -480,19 +468,19 @@ export default function ChatPage() {
                         }`}
                       >
                         {msg.role === "ai" && msg.model && (
-                          <div className="mb-2 pb-2 border-b border-red-600/30">
-                            <p className="text-xs font-mono text-orange-500">
-                              🤖 Using: <span className="font-bold">{msg.model}</span>
+                          <div className="mb-2 pb-2 border-b border-border/30">
+                            <p className="text-xs font-mono text-primary">
+                              🤖 Model: <span className="font-bold">{msg.model}</span>
                             </p>
                             {msg.routingReason && (
-                              <p className="text-[10px] text-red-600 mt-1">
+                              <p className="text-[10px] text-muted-foreground font-mono mt-1">
                                 📍 {msg.routingReason}
                               </p>
                             )}
                           </div>
                         )}
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                        <div className={`text-xs mt-2 ${msg.role === "user" ? "text-black/60" : "text-red-600"}`}>
+                        <p className="whitespace-pre-wrap font-mono text-sm">{msg.content}</p>
+                        <div className={`text-xs mt-2 font-mono ${msg.role === "user" ? "text-primary/60" : "text-muted-foreground"}`}>
                           <p>{new Date(msg.timestamp).toLocaleTimeString()}</p>
                         </div>
                       </div>
@@ -501,8 +489,8 @@ export default function ChatPage() {
                   {loading && (
                     <div className="flex justify-start">
                       <div className="ai-bubble">
-                        <p className="animate-pulse neon-text">
-                          Devil's thinking... 👹🔥
+                        <p className="animate-pulse font-mono text-sm">
+                          Processing<span className="terminal-cursor">_</span>
                         </p>
                       </div>
                     </div>
@@ -512,33 +500,36 @@ export default function ChatPage() {
               )}
             </ScrollArea>
 
-            {/* Message Input - NO MODEL SELECTOR */}
-            <div className="p-4 border-t border-red-600 bg-black/50 backdrop-blur-sm">
+            {/* Message Input - Command Line Style */}
+            <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
               <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2">
-                  <Textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    placeholder="Ask about coding, UI/UX, game dev, or anything... 🔥"
-                    className="bg-black/80 border-red-600 text-orange-500 placeholder:text-red-800 min-h-[60px] resize-none"
-                    disabled={loading}
-                  />
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-3 text-primary font-mono text-sm">{'>'}</span>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      placeholder="Enter command..."
+                      className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[60px] resize-none font-mono text-sm pl-8 vscode-hover"
+                      disabled={loading}
+                    />
+                  </div>
                   <Button
                     onClick={sendMessage}
                     disabled={!message.trim() || loading}
-                    className="fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold px-8"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono px-8 vscode-hover"
                   >
-                    🔥
+                    ▶
                   </Button>
                 </div>
-                <p className="text-xs text-orange-500/60 mt-2 text-center">
-                  💡 Auto-routing enabled - I'll pick the best model for your task
+                <p className="text-xs text-muted-foreground mt-2 text-center font-mono">
+                  💡 Auto-routing enabled • Press Enter to send
                 </p>
               </div>
             </div>
@@ -546,14 +537,11 @@ export default function ChatPage() {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-6">
-              <div className="flex justify-center gap-12">
-                <div className="w-12 h-12 rounded-full bg-red-600 demon-eyes" />
-                <div className="w-12 h-12 rounded-full bg-red-600 demon-eyes" />
-              </div>
-              <h2 className="text-4xl font-bold glitch-text neon-text">
-                Select a chat or create a new one
+              <div className="text-8xl mb-4">⚡</div>
+              <h2 className="text-3xl font-bold font-mono text-primary">
+                Developer Workspace
               </h2>
-              <p className="text-xl text-orange-500">DEVIL DEV awaits... 👹</p>
+              <p className="text-lg text-muted-foreground font-mono">Select a chat or create a new one</p>
             </div>
           </div>
         )}
@@ -561,22 +549,22 @@ export default function ChatPage() {
 
       {/* Rename Dialog */}
       <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
-        <DialogContent className="devil-card border-2 border-red-600">
+        <DialogContent className="command-palette border-primary">
           <DialogHeader>
-            <DialogTitle className="text-2xl glitch-text neon-text">Rename Chat</DialogTitle>
+            <DialogTitle className="text-xl font-mono text-primary">Rename Chat</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
               value={renameTitle}
               onChange={(e) => setRenameTitle(e.target.value)}
-              className="bg-black/80 border-red-600 text-orange-500"
+              className="bg-input border-border text-foreground font-mono vscode-hover"
               placeholder="Enter new name"
             />
             <Button
               onClick={renameChat}
-              className="w-full fire-burst bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-black font-bold"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover"
             >
-              🔥 Rename
+              ✓ Rename
             </Button>
           </div>
         </DialogContent>

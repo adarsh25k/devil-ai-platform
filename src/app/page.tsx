@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import SplashScreen from "@/components/SplashScreen";
+import { BootAnimation } from "@/components/BootAnimation";
 import LoginModal from "@/components/LoginModal";
 import AccessRequestModal, { AccessRequestData } from "@/components/AccessRequestModal";
 
 export default function Home() {
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showBoot, setShowBoot] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
 
@@ -25,8 +25,8 @@ export default function Home() {
     }
   }, [router]);
 
-  const handleSplashComplete = () => {
-    setShowSplash(false);
+  const handleBootComplete = () => {
+    setShowBoot(false);
     setShowLogin(true);
   };
 
@@ -82,11 +82,10 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Fog overlay effect */}
-      {!showSplash && <div className="fog-overlay" />}
+      <div className="grid-background" />
       
-      {/* Splash Screen */}
-      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+      {/* Boot Animation */}
+      {showBoot && <BootAnimation onComplete={handleBootComplete} />}
 
       {/* Login Modal */}
       <LoginModal
@@ -110,18 +109,15 @@ export default function Home() {
       />
 
       {/* Background when modals are shown */}
-      {!showSplash && (
-        <div className="min-h-screen flex items-center justify-center bg-black">
-          <div className="text-center space-y-8">
-            <div className="flex justify-center gap-16 mb-8">
-              <div className="w-12 h-12 rounded-full bg-red-600 demon-eyes shadow-[0_0_40px_rgba(255,0,0,0.9)]" />
-              <div className="w-12 h-12 rounded-full bg-red-600 demon-eyes shadow-[0_0_40px_rgba(255,0,0,0.9)]" />
-            </div>
-            <h1 className="text-9xl font-bold glitch-text neon-text">
-              I AM DEVIL
+      {!showBoot && (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center space-y-8 relative z-10">
+            <div className="text-8xl mb-8 text-primary">⚡</div>
+            <h1 className="text-7xl font-bold font-mono text-primary neon-underline">
+              DEVIL DEV
             </h1>
-            <p className="text-3xl text-orange-500 animate-pulse">
-              Welcome to the Abyss
+            <p className="text-2xl text-muted-foreground font-mono animate-pulse">
+              Developer Workspace
             </p>
           </div>
         </div>
