@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { getApiKey } from '@/utils/getApiKey';
 import { verifyToken } from '@/lib/db';
-import { decrypt } from '@/lib/crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,26 +9,25 @@ export async function POST(request: NextRequest) {
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Authentication required', code: 'MISSING_AUTH_TOKEN' },
+        { success: false, status: 'ERROR', message: 'Authentication required' },
         { status: 401 }
       );
     }
     
     const token = authHeader.substring(7);
     
-    let tokenData;
     try {
-      tokenData = await verifyToken(token);
+      const tokenData = await verifyToken(token);
       
       if (!tokenData || !tokenData.username) {
         return NextResponse.json(
-          { error: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+          { success: false, status: 'ERROR', message: 'Invalid or expired token' },
           { status: 401 }
         );
       }
     } catch (error) {
       return NextResponse.json(
-        { error: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        { success: false, status: 'ERROR', message: 'Invalid or expired token' },
         { status: 401 }
       );
     }
@@ -39,95 +35,67 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { key_type } = body;
     
-    if (!key_type || typeof key_type !== 'string' || key_type.trim() === '') {
+    if (!key_type || typeof key_type !== 'string') {
       return NextResponse.json(
-        { error: 'key_type is required', code: 'MISSING_KEY_TYPE' },
+        { success: false, status: 'ERROR', message: 'key_type is required' },
         { status: 400 }
       );
     }
     
-    // Retrieve the key from database
-    const keyRecord = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.keyName, key_type.trim()))
-      .limit(1);
+    // Load key from database using universal helper
+    const apiKey = await getApiKey(key_type);
     
-    if (keyRecord.length === 0) {
-      return NextResponse.json(
-        { 
-          success: false,
-          status: 'NOT_FOUND',
-          message: `No API key found for type: ${key_type}`,
-          key_type 
-        },
-        { status: 404 }
-      );
+    if (!apiKey) {
+      return NextResponse.json({
+        success: false,
+        status: 'NOT_FOUND',
+        message: `API key not found in database: ${key_type}`,
+        keyType: key_type
+      });
     }
     
-    // Decrypt the key
-    let decryptedKey;
-    try {
-      decryptedKey = decrypt(keyRecord[0].encryptedValue);
-    } catch (error) {
-      return NextResponse.json(
-        { 
-          success: false,
-          status: 'DECRYPTION_ERROR',
-          message: 'Failed to decrypt API key',
-          key_type 
-        },
-        { status: 500 }
-      );
-    }
-    
-    // Test the key by making a simple API call to OpenRouter
+    // Test the key by calling OpenRouter /models endpoint
     try {
       const testResponse = await fetch('https://openrouter.ai/api/v1/models', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${decryptedKey}`,
-          'Content-Type': 'application/json',
-        },
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       if (testResponse.ok) {
-        const models = await testResponse.json();
+        const data = await testResponse.json();
         return NextResponse.json({
           success: true,
           status: 'WORKING',
-          message: `✅ API key is valid and working! Found ${models.data?.length || 0} available models.`,
-          key_type,
-          models_count: models.data?.length || 0,
-          tested_at: new Date().toISOString()
+          message: `API key ${key_type} is valid and working`,
+          keyType: key_type,
+          modelsCount: data.data?.length || 0
         });
       } else {
         const errorData = await testResponse.json().catch(() => ({ error: 'Unknown error' }));
         return NextResponse.json({
           success: false,
           status: 'INVALID',
-          message: `❌ API key test failed: ${errorData.error?.message || testResponse.statusText}`,
-          key_type,
-          error_details: errorData,
-          tested_at: new Date().toISOString()
-        }, { status: 200 }); // Return 200 but with success: false
+          message: `API key ${key_type} is invalid: ${errorData.error?.message || testResponse.statusText}`,
+          keyType: key_type
+        });
       }
     } catch (error) {
       return NextResponse.json({
         success: false,
-        status: 'NETWORK_ERROR',
-        message: `❌ Network error while testing API key: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        key_type,
-        tested_at: new Date().toISOString()
-      }, { status: 200 }); // Return 200 but with success: false
+        status: 'ERROR',
+        message: `Failed to test key ${key_type}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        keyType: key_type
+      });
     }
-    
   } catch (error) {
     console.error('Test key error:', error);
     return NextResponse.json(
       { 
         success: false,
-        status: 'INTERNAL_ERROR',
+        status: 'ERROR',
         message: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
       },
       { status: 500 }

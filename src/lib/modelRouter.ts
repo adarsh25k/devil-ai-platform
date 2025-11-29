@@ -1,7 +1,4 @@
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { decrypt } from '@/lib/crypto';
+import { getApiKey } from '@/utils/getApiKey';
 
 // DEVIL DEV - 5 Key Architecture
 export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
@@ -88,28 +85,6 @@ export function detectCategory(message: string): string {
 }
 
 /**
- * Get API key from database and decrypt it
- */
-async function getApiKey(keyType: string): Promise<string | null> {
-  try {
-    const keyRecord = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.keyName, keyType))
-      .limit(1);
-
-    if (keyRecord.length === 0) {
-      return null;
-    }
-
-    return decrypt(keyRecord[0].encryptedValue);
-  } catch (error) {
-    console.error(`Failed to retrieve key ${keyType}:`, error);
-    return null;
-  }
-}
-
-/**
  * Route to specific model (no user selection - auto only)
  */
 export async function routeForced(category: string): Promise<RoutingResult> {
@@ -121,7 +96,7 @@ export async function routeForced(category: string): Promise<RoutingResult> {
     const apiKey = await getApiKey(mainBrainConfig.keyType);
     
     if (!apiKey) {
-      throw new Error(`No API key configured for: ${mainBrainConfig.keyType}`);
+      throw new Error(`API key missing for model: ${mainBrainConfig.keyType}`);
     }
     
     return {
@@ -141,7 +116,7 @@ export async function routeForced(category: string): Promise<RoutingResult> {
     const fallbackKey = await getApiKey(mainBrainConfig.keyType);
     
     if (!fallbackKey) {
-      throw new Error(`No API key configured for: ${config.keyType} or fallback key`);
+      throw new Error(`API key missing for model: ${config.keyType}`);
     }
     
     return {
@@ -177,7 +152,7 @@ export async function detectAndRoute(message: string): Promise<RoutingResult> {
     const fallbackKey = await getApiKey(mainBrainConfig.keyType);
     
     if (!fallbackKey) {
-      throw new Error(`No API key configured for detected category: ${config.keyType} or fallback key`);
+      throw new Error(`API key missing for model: ${config.keyType}`);
     }
     
     return {

@@ -282,6 +282,34 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestApiKey = async (keyName: string) => {
+    setTestingKey(keyName);
+    setTestResult(null);
+    
+    try {
+      const response = await fetch("/api/admin/keys/test", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ key_type: keyName }),
+      });
+
+      const data = await response.json();
+      setTestResult({ keyName, result: data });
+    } catch (error) {
+      console.error("Failed to test key:", error);
+      setTestResult({ 
+        keyName, 
+        result: { 
+          success: false, 
+          status: 'ERROR', 
+          message: 'Failed to test key: ' + (error instanceof Error ? error.message : 'Unknown error') 
+        } 
+      });
+    } finally {
+      setTestingKey(null);
+    }
+  };
+
   const handleAddUiText = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -675,6 +703,47 @@ export default function AdminDashboard() {
               </Button>
             </div>
 
+            {/* Test Result Display */}
+            {testResult && (
+              <Card className={`terminal-card p-4 border-2 ${
+                testResult.result.success 
+                  ? 'border-green-500 bg-green-500/10' 
+                  : 'border-red-500 bg-red-500/10'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">
+                    {testResult.result.status === 'WORKING' && '✅'}
+                    {testResult.result.status === 'INVALID' && '❌'}
+                    {testResult.result.status === 'NOT_FOUND' && '⚠️'}
+                    {testResult.result.status === 'ERROR' && '🔥'}
+                  </span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-mono text-primary mb-1">
+                      Test Result: {testResult.keyName}
+                    </h3>
+                    <p className={`text-sm font-mono ${
+                      testResult.result.success ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {testResult.result.message}
+                    </p>
+                    {testResult.result.modelsCount && (
+                      <p className="text-xs text-muted-foreground font-mono mt-2">
+                        ✓ OpenRouter returned {testResult.result.modelsCount} available models
+                      </p>
+                    )}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => setTestResult(null)}
+                    className="font-mono"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             <Card className="terminal-card">
               <Table>
                 <TableHeader>
@@ -692,9 +761,24 @@ export default function AdminDashboard() {
                       <TableCell className="text-muted-foreground font-mono text-sm">{key.created_by}</TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">{new Date(key.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteApiKey(key.key_name)} className="font-mono vscode-hover">
-                          Delete
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleTestApiKey(key.key_name)} 
+                            disabled={testingKey === key.key_name}
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground font-mono vscode-hover"
+                          >
+                            {testingKey === key.key_name ? '⏳ Testing...' : '🔍 Test'}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            onClick={() => handleDeleteApiKey(key.key_name)} 
+                            className="font-mono vscode-hover"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
