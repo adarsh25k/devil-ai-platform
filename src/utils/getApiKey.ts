@@ -46,3 +46,27 @@ export async function hasApiKey(keyName: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Helper function to get Debugging API Key
+ * Automatically decrypts the stored key
+ */
+export async function getDebuggingApiKey(): Promise<string | null> {
+  return await getApiKey('debugging_api_key');
+}
+
+/**
+ * Helper function to get Fast Daily Use API Key
+ * Automatically decrypts the stored key
+ */
+export async function getFastApiKey(): Promise<string | null> {
+  return await getApiKey('fast_api_key');
+}
+
+/**
+ * Helper function to get Canvas / PPT / Notes API Key
+ * Automatically decrypts the stored key
+ */
+export async function getCanvasNotesApiKey(): Promise<string | null> {
+  return await getApiKey('canvas_notes_api_key');
+}

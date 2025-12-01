@@ -1131,11 +1131,13 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="Select key type" />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  <SelectItem value="main_brain_key" className="text-foreground font-mono">🧠 Main Brain Key</SelectItem>
-                  <SelectItem value="coding_key" className="text-foreground font-mono">💻 Coding Key</SelectItem>
-                  <SelectItem value="uiux_key" className="text-foreground font-mono">🎨 UI/UX Key</SelectItem>
-                  <SelectItem value="game_dev_key" className="text-foreground font-mono">🎮 Game Dev Key</SelectItem>
-                  <SelectItem value="image_key" className="text-foreground font-mono">🖼️ Image Key</SelectItem>
+                  <SelectItem value="main_brain_key" className="text-foreground font-mono">🧠 Main Brain API Key</SelectItem>
+                  <SelectItem value="coding_key" className="text-foreground font-mono">💻 Coding API Key</SelectItem>
+                  <SelectItem value="debugging_api_key" className="text-foreground font-mono">🐛 Debugging / Fix Bugs API Key</SelectItem>
+                  <SelectItem value="fast_api_key" className="text-foreground font-mono">⚡ Fast Daily Use API Key</SelectItem>
+                  <SelectItem value="uiux_key" className="text-foreground font-mono">🎨 Design / Mockup API Key</SelectItem>
+                  <SelectItem value="game_dev_key" className="text-foreground font-mono">🎮 Game Dev API Key</SelectItem>
+                  <SelectItem value="canvas_notes_api_key" className="text-foreground font-mono">📝 Canvas / PPT / Notes API Key</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground font-mono">Auto-router will select the best model</p>
@@ -1147,7 +1149,15 @@ export default function AdminDashboard() {
                 value={newKey.value}
                 onChange={(e) => setNewKey({ ...newKey, value: e.target.value })}
                 className="bg-input border-border text-foreground font-mono vscode-hover"
-                placeholder="sk-or-v1-..."
+                placeholder={
+                  newKey.key_name === "debugging_api_key" 
+                    ? "Enter your Debugging API Key" 
+                    : newKey.key_name === "fast_api_key"
+                    ? "Enter your Fast API Key"
+                    : newKey.key_name === "canvas_notes_api_key"
+                    ? "Enter your Canvas/Notes API Key"
+                    : "sk-or-v1-..."
+                }
                 required
               />
               <p className="text-xs text-muted-foreground font-mono">🔒 AES-256-GCM encrypted</p>
