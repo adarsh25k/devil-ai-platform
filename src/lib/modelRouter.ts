@@ -1,6 +1,6 @@
 import { getApiKey } from '@/utils/getApiKey';
 
-// DEVIL DEV - 8 Key Architecture (Updated with 3 new keys)
+// DEVIL DEV - 9 Key Architecture (Updated with UI/UX & Image Generation)
 export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
   main_brain: {
     keyType: 'main_brain_key',
@@ -27,6 +27,11 @@ export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; des
     model: 'deepseek/deepseek-r1',
     description: 'UI/UX Designer - Website mockups, design feedback'
   },
+  uiux_image: {
+    keyType: 'uiux_image_api_key',
+    model: 'google/gemini-2.0-flash-exp:free',
+    description: 'UI/UX & Image Generation - Mobile screens, visual layouts, icons, logos'
+  },
   game_dev: {
     keyType: 'game_dev_key',
     model: 'deepseek/deepseek-r1',
@@ -44,7 +49,7 @@ export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; des
   }
 };
 
-// Smart detection patterns for developer tasks (UPDATED)
+// Smart detection patterns for developer tasks (UPDATED with UI/UX Image Generation)
 const DETECTION_PATTERNS = {
   debugging: [
     'error', 'fix bug', 'debug', 'exception', 'stacktrace', 'crash',
@@ -62,6 +67,16 @@ const DETECTION_PATTERNS = {
     'summary', 'study guide', 'slides', 'powerpoint',
     'keynote', 'lecture notes', 'outline', 'bullet points',
     'markdown notes', 'documentation'
+  ],
+  uiux_image: [
+    'mobile app screen', 'app ui', 'mobile ui', 'mobile design',
+    'website mockup', 'web mockup', 'site design',
+    'figma', 'figma design', 'design system',
+    'generate image', 'create image', 'visual design',
+    'icon design', 'logo design', 'app icon',
+    'visual layout', 'screen layout', 'ui layout',
+    'splash screen', 'onboarding screen',
+    'dashboard design', 'landing page design'
   ],
   coding: [
     'bug', 'api', 'backend', 'database', 'auth', 'jwt', 'server',
@@ -100,12 +115,13 @@ export interface RoutingResult {
  * Smart auto-detection for developer tasks (PRIORITY ORDER)
  * 1. Debugging/Bugs (highest priority)
  * 2. Canvas/Notes
- * 3. Fast/Quick queries (check message length)
- * 4. Coding
- * 5. UI/UX
- * 6. Game Dev
- * 7. Image
- * 8. Main Brain (fallback)
+ * 3. UI/UX Image Generation (NEW - mobile screens, visual designs)
+ * 4. Fast/Quick queries (check message length)
+ * 5. Coding
+ * 6. UI/UX (text-based design feedback)
+ * 7. Game Dev
+ * 8. Image
+ * 9. Main Brain (fallback)
  */
 export function detectCategory(message: string): string {
   const messageLower = message.toLowerCase();
@@ -127,7 +143,15 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 3: Fast queries (short messages or quick keywords)
+  // Priority 3: UI/UX Image Generation (mobile screens, visual designs, mockups)
+  for (const pattern of DETECTION_PATTERNS.uiux_image) {
+    if (messageLower.includes(pattern)) {
+      console.log(`🎨 Routing to UI/UX IMAGE GENERATION: detected pattern "${pattern}"`);
+      return 'uiux_image';
+    }
+  }
+  
+  // Priority 4: Fast queries (short messages or quick keywords)
   if (messageLength < 50) {
     for (const pattern of DETECTION_PATTERNS.fast) {
       if (messageLower.includes(pattern)) {
@@ -142,9 +166,9 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 4-7: Check other categories
+  // Priority 5-8: Check other categories
   for (const [category, patterns] of Object.entries(DETECTION_PATTERNS)) {
-    if (category === 'debugging' || category === 'fast' || category === 'canvas_notes') {
+    if (category === 'debugging' || category === 'fast' || category === 'canvas_notes' || category === 'uiux_image') {
       continue; // Already checked above
     }
     

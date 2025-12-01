@@ -4,69 +4,67 @@ import { eq } from 'drizzle-orm';
 import { decrypt } from '@/lib/crypto';
 
 /**
- * Universal helper to fetch and decrypt API keys from database
- * Returns null if key not found (not an error)
+ * Universal API key loader
+ * Fetches and decrypts API keys from database
+ * Returns null if key not found (no errors thrown)
  */
 export async function getApiKey(keyName: string): Promise<string | null> {
   try {
-    const keyRecord = await db
+    const keyEntry = await db
       .select()
       .from(apiKeys)
-      .where(eq(apiKeys.keyName, keyName))
+      .where(eq(apiKeys.key_name, keyName))
       .limit(1);
 
-    if (keyRecord.length === 0) {
-      console.warn(`API key not found in database: ${keyName}`);
+    if (!keyEntry || keyEntry.length === 0) {
+      console.warn(`[getApiKey] Key not found: ${keyName}`);
       return null;
     }
 
-    // Decrypt the key value using AES-256-GCM
-    const decryptedKey = decrypt(keyRecord[0].encryptedValue);
-    return decryptedKey;
+    const encryptedValue = keyEntry[0].encrypted_value;
+    const decrypted = decrypt(encryptedValue);
+    
+    return decrypted;
   } catch (error) {
-    console.error(`Failed to retrieve/decrypt API key ${keyName}:`, error);
+    console.error(`[getApiKey] Error loading key ${keyName}:`, error);
     return null;
   }
 }
 
-/**
- * Check if an API key exists in the database
- */
-export async function hasApiKey(keyName: string): Promise<boolean> {
-  try {
-    const keyRecord = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.keyName, keyName))
-      .limit(1);
+// Helper functions for direct key access (auto-decrypt)
 
-    return keyRecord.length > 0;
-  } catch (error) {
-    console.error(`Failed to check API key existence ${keyName}:`, error);
-    return false;
-  }
+export async function getMainBrainKey(): Promise<string | null> {
+  return getApiKey('main_brain_key');
 }
 
-/**
- * Helper function to get Debugging API Key
- * Automatically decrypts the stored key
- */
+export async function getCodingKey(): Promise<string | null> {
+  return getApiKey('coding_key');
+}
+
 export async function getDebuggingApiKey(): Promise<string | null> {
-  return await getApiKey('debugging_api_key');
+  return getApiKey('debugging_api_key');
 }
 
-/**
- * Helper function to get Fast Daily Use API Key
- * Automatically decrypts the stored key
- */
 export async function getFastApiKey(): Promise<string | null> {
-  return await getApiKey('fast_api_key');
+  return getApiKey('fast_api_key');
 }
 
-/**
- * Helper function to get Canvas / PPT / Notes API Key
- * Automatically decrypts the stored key
- */
+export async function getUiUxKey(): Promise<string | null> {
+  return getApiKey('uiux_key');
+}
+
+export async function getUiUxImageApiKey(): Promise<string | null> {
+  return getApiKey('uiux_image_api_key');
+}
+
+export async function getGameDevKey(): Promise<string | null> {
+  return getApiKey('game_dev_key');
+}
+
 export async function getCanvasNotesApiKey(): Promise<string | null> {
-  return await getApiKey('canvas_notes_api_key');
+  return getApiKey('canvas_notes_api_key');
+}
+
+export async function getImageKey(): Promise<string | null> {
+  return getApiKey('image_key');
 }
