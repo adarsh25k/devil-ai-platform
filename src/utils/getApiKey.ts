@@ -49,12 +49,12 @@ export async function getFastApiKey(): Promise<string | null> {
   return getApiKey('fast_api_key');
 }
 
-export async function getUiUxKey(): Promise<string | null> {
-  return getApiKey('uiux_key');
+export async function getUiUxMockupApiKey(): Promise<string | null> {
+  return getApiKey('uiux_mockup_api_key');
 }
 
-export async function getUiUxImageApiKey(): Promise<string | null> {
-  return getApiKey('uiux_image_api_key');
+export async function getImageGenerationApiKey(): Promise<string | null> {
+  return getApiKey('image_generation_api_key');
 }
 
 export async function getGameDevKey(): Promise<string | null> {

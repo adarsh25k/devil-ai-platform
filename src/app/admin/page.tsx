@@ -1135,8 +1135,8 @@ export default function AdminDashboard() {
                   <SelectItem value="coding_key" className="text-foreground font-mono">💻 Coding API Key</SelectItem>
                   <SelectItem value="debugging_api_key" className="text-foreground font-mono">🐛 Debugging / Fix Bugs API Key</SelectItem>
                   <SelectItem value="fast_api_key" className="text-foreground font-mono">⚡ Fast Daily Use API Key</SelectItem>
-                  <SelectItem value="uiux_key" className="text-foreground font-mono">🎨 Design / Mockup API Key</SelectItem>
-                  <SelectItem value="uiux_image_api_key" className="text-foreground font-mono">🎨 UI/UX & Image Generation API Key</SelectItem>
+                  <SelectItem value="uiux_mockup_api_key" className="text-foreground font-mono">🎨 UI/UX & Mockup API Key</SelectItem>
+                  <SelectItem value="image_generation_api_key" className="text-foreground font-mono">🖼️ Image Generation API Key</SelectItem>
                   <SelectItem value="game_dev_key" className="text-foreground font-mono">🎮 Game Dev API Key</SelectItem>
                   <SelectItem value="canvas_notes_api_key" className="text-foreground font-mono">📝 Canvas / PPT / Notes API Key</SelectItem>
                 </SelectContent>
@@ -1157,8 +1157,10 @@ export default function AdminDashboard() {
                     ? "Enter your Fast API Key"
                     : newKey.key_name === "canvas_notes_api_key"
                     ? "Enter your Canvas/Notes API Key"
-                    : newKey.key_name === "uiux_image_api_key"
-                    ? "Enter your UI/UX & Image Generation API Key"
+                    : newKey.key_name === "uiux_mockup_api_key"
+                    ? "Enter your UI/UX & Mockup API Key"
+                    : newKey.key_name === "image_generation_api_key"
+                    ? "Enter your Image Generation API Key"
                     : "sk-or-v1-..."
                 }
                 required
