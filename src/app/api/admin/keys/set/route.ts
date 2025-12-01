@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import { verifyToken } from '@/lib/db';
-import { encrypt } from '@/lib/crypto';
+import { saveApiKey } from '@/lib/apiKeyPersistence';
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,48 +53,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Use the universal encrypt function from @/lib/crypto (AES-256-GCM)
-    const encryptedValue = encrypt(finalValue.trim());
-    const timestamp = new Date().toISOString();
-    const username = tokenData.username;
+    // Use new persistence layer - ALWAYS writes to Turso database
+    const result = await saveApiKey(
+      finalKeyName.trim(),
+      finalValue.trim(),
+      tokenData.username
+    );
     
-    const existingKey = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.keyName, finalKeyName.trim()))
-      .limit(1);
-    
-    if (existingKey.length > 0) {
-      await db
-        .update(apiKeys)
-        .set({
-          encryptedValue: encryptedValue,
-          updatedAt: timestamp,
-        })
-        .where(eq(apiKeys.keyName, finalKeyName.trim()));
-      
-      return NextResponse.json({
-        success: true,
-        message: 'API key updated',
-        keyName: finalKeyName.trim(),
-      });
-    } else {
-      await db
-        .insert(apiKeys)
-        .values({
-          keyName: finalKeyName.trim(),
-          encryptedValue: encryptedValue,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-          createdBy: username,
-        });
-      
-      return NextResponse.json({
-        success: true,
-        message: 'API key saved',
-        keyName: finalKeyName.trim(),
-      }, { status: 201 });
-    }
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json(

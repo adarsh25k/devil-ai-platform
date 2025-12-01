@@ -175,7 +175,7 @@ export default function AdminDashboard() {
       const [requestsRes, usersRes, keysRes, textsRes, themesRes, rulesRes, pluginsRes, notesRes] = await Promise.all([
         fetch("/api/admin/requests", { headers }),
         fetch("/api/admin/users", { headers }),
-        fetch("/api/admin/keys/list", { headers }),
+        fetch("/api/admin/keys/list", { headers, cache: 'no-store' }),
         fetch("/api/ui-texts/load"),
         fetch("/api/themes/list"),
         fetch("/api/admin/models/rules/list", { headers }),
@@ -195,7 +195,11 @@ export default function AdminDashboard() {
 
       if (keysRes.ok) {
         const data = await keysRes.json();
+        console.log('[Admin] Loaded API keys from database:', data.keys?.length || 0);
         setApiKeys(data.keys || []);
+      } else {
+        console.error('[Admin] Failed to load API keys:', await keysRes.text());
+        setApiKeys([]);
       }
 
       if (textsRes.ok) {
@@ -258,16 +262,29 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('[Admin] API key saved:', result);
         setShowAddKey(false);
         setNewKey({ key_name: "", value: "" });
-        loadData();
+        
+        // CRITICAL: Force fresh reload from database
+        await loadData();
+      } else {
+        const error = await response.json();
+        console.error('[Admin] Failed to save API key:', error);
+        alert(`Failed to save API key: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Failed to add key:", error);
+      alert(`Failed to add key: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleDeleteApiKey = async (keyName: string) => {
+    if (!confirm(`Are you sure you want to delete the API key: ${keyName}?`)) {
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/admin/keys/delete?key_name=${keyName}`, {
         method: "DELETE",
@@ -275,10 +292,18 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        loadData();
+        console.log('[Admin] API key deleted:', keyName);
+        
+        // CRITICAL: Force fresh reload from database
+        await loadData();
+      } else {
+        const error = await response.json();
+        console.error('[Admin] Failed to delete API key:', error);
+        alert(`Failed to delete API key: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Failed to delete key:", error);
+      alert(`Failed to delete key: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -294,6 +319,7 @@ export default function AdminDashboard() {
       });
 
       const data = await response.json();
+      console.log('[Admin] Test result for', keyName, ':', data);
       setTestResult({ keyName, result: data });
     } catch (error) {
       console.error("Failed to test key:", error);

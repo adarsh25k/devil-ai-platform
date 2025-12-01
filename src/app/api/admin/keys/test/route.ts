@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getApiKey } from '@/utils/getApiKey';
 import { verifyToken } from '@/lib/db';
+import { getApiKeyByName } from '@/lib/apiKeyPersistence';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Load key from database using universal helper
-    const apiKey = await getApiKey(key_type);
+    // Use new persistence layer - ALWAYS reads from Turso database
+    const apiKey = await getApiKeyByName(key_type);
     
     if (!apiKey) {
       return NextResponse.json({
         success: false,
         status: 'NOT_FOUND',
-        message: `API key not found in database: ${key_type}`,
+        message: `API key not found in database: ${key_type}. Please add the key first.`,
         keyType: key_type
       });
     }
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           status: 'WORKING',
-          message: `API key ${key_type} is valid and working`,
+          message: `✅ API key ${key_type} is valid and working`,
           keyType: key_type,
           modelsCount: data.data?.length || 0
         });
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: false,
           status: 'INVALID',
-          message: `API key ${key_type} is invalid: ${errorData.error?.message || testResponse.statusText}`,
+          message: `❌ API key ${key_type} is invalid: ${errorData.error?.message || testResponse.statusText}`,
           keyType: key_type
         });
       }

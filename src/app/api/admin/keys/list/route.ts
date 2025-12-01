@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
 import { verifyToken } from '@/lib/db';
+import { readApiKeys } from '@/lib/apiKeyPersistence';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,21 +30,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const keys = await db.select({
-      id: apiKeys.id,
-      key_name: apiKeys.keyName,
-      created_at: apiKeys.createdAt,
-      created_by: apiKeys.createdBy
-    })
-    .from(apiKeys);
+    // Use new persistence layer - ALWAYS reads from Turso database
+    const allKeys = await readApiKeys();
+    
+    // Return only non-sensitive fields
+    const keys = allKeys.map(key => ({
+      id: key.id,
+      key_name: key.keyName,
+      created_at: key.createdAt,
+      created_by: key.createdBy
+    }));
 
     return NextResponse.json({
       success: true,
-      keys
+      keys,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('GET /api/api-keys error:', error);
+    console.error('GET /api/admin/keys/list error:', error);
     return NextResponse.json(
       { 
         error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),

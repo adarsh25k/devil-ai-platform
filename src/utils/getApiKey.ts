@@ -1,34 +1,12 @@
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { decrypt } from '@/lib/crypto';
+import { getApiKeyByName } from '@/lib/apiKeyPersistence';
 
 /**
  * Universal API key loader
- * Fetches and decrypts API keys from database
+ * Fetches and decrypts API keys from persistent Turso database
  * Returns null if key not found (no errors thrown)
  */
 export async function getApiKey(keyName: string): Promise<string | null> {
-  try {
-    const keyEntry = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.key_name, keyName))
-      .limit(1);
-
-    if (!keyEntry || keyEntry.length === 0) {
-      console.warn(`[getApiKey] Key not found: ${keyName}`);
-      return null;
-    }
-
-    const encryptedValue = keyEntry[0].encrypted_value;
-    const decrypted = decrypt(encryptedValue);
-    
-    return decrypted;
-  } catch (error) {
-    console.error(`[getApiKey] Error loading key ${keyName}:`, error);
-    return null;
-  }
+  return getApiKeyByName(keyName);
 }
 
 // Helper functions for direct key access (auto-decrypt)
