@@ -3,32 +3,7 @@ import { db } from '@/db';
 import { apiKeys } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyToken } from '@/lib/db';
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
-
-const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
-const ENCRYPTION_KEY_LENGTH = 32;
-const IV_LENGTH = 16;
-const AUTH_TAG_LENGTH = 16;
-const SALT_LENGTH = 32;
-
-function getEncryptionKey(): Buffer {
-  const secret = process.env.ENCRYPTION_SECRET || 'default-secret-key-change-in-production';
-  const salt = process.env.ENCRYPTION_SALT || 'default-salt-change-in-production';
-  return scryptSync(secret, salt, ENCRYPTION_KEY_LENGTH);
-}
-
-function encryptValue(value: string): string {
-  const key = getEncryptionKey();
-  const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
-  
-  let encrypted = cipher.update(value, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  
-  const authTag = cipher.getAuthTag();
-  
-  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
-}
+import { encrypt } from '@/lib/crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,63 +36,66 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json();
-    const { key_name, value } = body;
+    const { key_name, value, keyName, keyValue } = body;
     
-    if (!key_name || typeof key_name !== 'string' || key_name.trim() === '') {
+    // Support both field name formats
+    const finalKeyName = key_name || keyName;
+    const finalValue = value || keyValue;
+    
+    if (!finalKeyName || typeof finalKeyName !== 'string' || finalKeyName.trim() === '') {
       return NextResponse.json(
-        { error: 'key_name is required and must be a non-empty string', code: 'MISSING_KEY_NAME' },
+        { error: 'keyName is required and must be a non-empty string', code: 'MISSING_KEY_NAME' },
         { status: 400 }
       );
     }
     
-    if (!value || typeof value !== 'string' || value.trim() === '') {
+    if (!finalValue || typeof finalValue !== 'string' || finalValue.trim() === '') {
       return NextResponse.json(
-        { error: 'value is required and must be a non-empty string', code: 'MISSING_VALUE' },
+        { error: 'keyValue is required and must be a non-empty string', code: 'MISSING_VALUE' },
         { status: 400 }
       );
     }
     
-    const encryptedValue = encryptValue(value);
+    // Use the universal encrypt function from @/lib/crypto (AES-256-GCM)
+    const encryptedValue = encrypt(finalValue.trim());
     const timestamp = new Date().toISOString();
     const username = tokenData.username;
     
     const existingKey = await db
       .select()
       .from(apiKeys)
-      .where(eq(apiKeys.keyName, key_name.trim()))
+      .where(eq(apiKeys.keyName, finalKeyName.trim()))
       .limit(1);
     
     if (existingKey.length > 0) {
-      const updated = await db
+      await db
         .update(apiKeys)
         .set({
           encryptedValue: encryptedValue,
           updatedAt: timestamp,
         })
-        .where(eq(apiKeys.keyName, key_name.trim()))
-        .returning();
+        .where(eq(apiKeys.keyName, finalKeyName.trim()));
       
       return NextResponse.json({
         success: true,
         message: 'API key updated',
-        key_name: key_name.trim(),
+        keyName: finalKeyName.trim(),
       });
     } else {
-      const created = await db
+      await db
         .insert(apiKeys)
         .values({
-          keyName: key_name.trim(),
+          keyName: finalKeyName.trim(),
           encryptedValue: encryptedValue,
           createdAt: timestamp,
           updatedAt: timestamp,
           createdBy: username,
-        })
-        .returning();
+        });
       
       return NextResponse.json({
         success: true,
         message: 'API key saved',
-        key_name: key_name.trim(),
+        keyName: finalKeyName.trim(),
       }, { status: 201 });
     }
   } catch (error) {
