@@ -1,6 +1,6 @@
 import { getApiKey } from '@/utils/getApiKey';
 
-// DEVIL DEV - 8 Key Architecture (Updated: VALID OpenRouter endpoints ONLY)
+// DEVIL DEV - 8 Key Architecture (Updated: VALID OpenRouter endpoints ONLY - NO :free suffixes)
 export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
   main_brain: {
     keyType: 'main_brain_key',
@@ -9,17 +9,17 @@ export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; des
   },
   coding: {
     keyType: 'coding_key',
-    model: 'qwen/qwen3-coder-480b-a35b:free',
+    model: 'qwen/qwen3-coder-480b-a35b',
     description: 'Coding Expert - Debugging, backend, frontend, APIs'
   },
   debugging: {
     keyType: 'debugging_api_key',
-    model: 'tngtech/deepseek-r1t2-chimera:free',
+    model: 'tngtech/deepseek-r1t2-chimera',
     description: 'Debugging / Fix Bugs - Error resolution, stacktrace analysis'
   },
   fast: {
     keyType: 'fast_api_key',
-    model: 'xai/grok-4.1-fast:free',
+    model: 'xai/grok-4.1-fast',
     description: 'Fast Daily Use - Quick answers, short messages'
   },
   uiux_mockup: {
@@ -34,12 +34,12 @@ export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; des
   },
   game_dev: {
     keyType: 'game_dev_key',
-    model: 'moonshotai/kimi-k2:free',
+    model: 'moonshotai/kimi-k2',
     description: 'Game Developer - Game logic, level design, story'
   },
   canvas_notes: {
     keyType: 'canvas_notes_api_key',
-    model: 'meta-llama/llama-3.2-3b-instruct:free',
+    model: 'meta-llama/llama-3.2-3b-instruct',
     description: 'Canvas / PPT / Notes - Presentations, cheat sheets, study notes'
   }
 };
