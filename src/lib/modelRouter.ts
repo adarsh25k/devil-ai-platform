@@ -1,51 +1,46 @@
 import { getApiKey } from '@/utils/getApiKey';
 
-// DEVIL DEV - 9 Key Architecture (Updated: UI/UX & Mockup + Image Generation separated)
+// DEVIL DEV - 8 Key Architecture (Updated: VALID OpenRouter endpoints ONLY)
 export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
   main_brain: {
     keyType: 'main_brain_key',
-    model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+    model: 'nousresearch/nous-hermes-3-llama-3-405b',
     description: 'Main Brain - General dev AI, planning, architecture'
   },
   coding: {
     keyType: 'coding_key',
-    model: 'qwen/qwq-32b-preview',
+    model: 'qwen/qwen3-coder-480b-a35b:free',
     description: 'Coding Expert - Debugging, backend, frontend, APIs'
   },
   debugging: {
     keyType: 'debugging_api_key',
-    model: 'qwen/qwq-32b-preview',
+    model: 'tngtech/deepseek-r1t2-chimera:free',
     description: 'Debugging / Fix Bugs - Error resolution, stacktrace analysis'
   },
   fast: {
     keyType: 'fast_api_key',
-    model: 'google/gemini-2.0-flash-exp:free',
+    model: 'xai/grok-4.1-fast:free',
     description: 'Fast Daily Use - Quick answers, short messages'
   },
   uiux_mockup: {
     keyType: 'uiux_mockup_api_key',
-    model: 'google/gemini-2.0-flash-exp',
+    model: 'meta-llama/llama-3.1-70b-instruct',
     description: 'UI/UX & Mockup - Screen design, wireframes, Figma layouts'
   },
   image_generation: {
     keyType: 'image_generation_api_key',
-    model: 'venice/uncensored',
+    model: 'veniceai/uncensored',
     description: 'Image Generation - AI-generated graphics, logos, icons, concept art'
   },
   game_dev: {
     keyType: 'game_dev_key',
-    model: 'deepseek/deepseek-r1',
+    model: 'moonshotai/kimi-k2:free',
     description: 'Game Developer - Game logic, level design, story'
   },
   canvas_notes: {
     keyType: 'canvas_notes_api_key',
-    model: 'deepseek/deepseek-r1',
+    model: 'meta-llama/llama-3.2-3b-instruct:free',
     description: 'Canvas / PPT / Notes - Presentations, cheat sheets, study notes'
-  },
-  image: {
-    keyType: 'image_key',
-    model: 'black-forest-labs/flux-1.1-pro',
-    description: 'Image Generator - UI mockups, game assets, logos'
   }
 };
 
