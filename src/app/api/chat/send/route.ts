@@ -18,17 +18,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('\n🔥🔥🔥 [CHAT API] ===== NEW CHAT REQUEST =====');
+    console.log(`📨 [CHAT API] Message: "${message.substring(0, 100)}..."`);
+    console.log(`👤 [CHAT API] User: ${userId}, Chat: ${chatId}`);
+
     // Route to appropriate model and get API key
     let routing;
     try {
       if (selectedModel && selectedModel !== 'auto') {
-        // User manually selected a model
+        console.log(`🎯 [CHAT API] User selected model: ${selectedModel}`);
         routing = await routeForced(selectedModel);
       } else {
-        // Auto-detect based on message content
+        console.log(`🤖 [CHAT API] Auto-detecting model...`);
         routing = await detectAndRoute(message);
       }
     } catch (error) {
+      console.error('❌ [CHAT API] Routing error:', error);
       return NextResponse.json(
         { 
           error: error instanceof Error ? error.message : 'Routing error',
@@ -37,6 +42,15 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.log(`\n✅ [CHAT API] ===== ROUTING COMPLETE =====`);
+    console.log(`📋 [CHAT API] Category: ${routing.category}`);
+    console.log(`🔑 [CHAT API] Key Type: ${routing.keyType}`);
+    console.log(`🤖 [CHAT API] Model ID: "${routing.model}"`);
+    console.log(`📏 [CHAT API] Model ID Length: ${routing.model.length} chars`);
+    console.log(`🔍 [CHAT API] Model ID (byte-by-byte): ${Array.from(routing.model).map(c => c.charCodeAt(0)).join(',')}`);
+    console.log(`💡 [CHAT API] Reason: ${routing.reason}`);
+    console.log(`🔐 [CHAT API] API Key: ${routing.apiKey ? `${routing.apiKey.substring(0, 10)}...${routing.apiKey.substring(routing.apiKey.length - 4)}` : 'MISSING'}`);
 
     // Debug mode: return routing info without calling API
     if (debug) {
@@ -67,7 +81,21 @@ export async function POST(request: NextRequest) {
       }
     ];
 
+    console.log(`\n🚀 [CHAT API] ===== CALLING OPENROUTER API =====`);
+    console.log(`🌐 [CHAT API] Endpoint: https://openrouter.ai/api/v1/chat/completions`);
+    console.log(`🤖 [CHAT API] Model Parameter: "${routing.model}"`);
+    console.log(`📊 [CHAT API] Messages Count: ${messages.length}`);
+
     // Call OpenRouter API
+    const requestBody = {
+      model: routing.model, // ⚠️ CRITICAL: Using EXACT model ID from routing
+      messages,
+      temperature: 0.7,
+      max_tokens: 2000
+    };
+
+    console.log(`📦 [CHAT API] Request Body Model Field: "${requestBody.model}"`);
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -76,21 +104,23 @@ export async function POST(request: NextRequest) {
         'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
         'X-Title': 'DEVIL DEV'
       },
-      body: JSON.stringify({
-        model: routing.model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 2000
-      })
+      body: JSON.stringify(requestBody)
     });
+
+    console.log(`\n📡 [CHAT API] ===== OPENROUTER RESPONSE =====`);
+    console.log(`📊 [CHAT API] Status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('OpenRouter API error:', errorData);
+      console.error('❌ [CHAT API] OpenRouter API error:', JSON.stringify(errorData, null, 2));
+      console.error(`❌ [CHAT API] Model sent: "${routing.model}"`);
+      console.error(`❌ [CHAT API] Key type: ${routing.keyType}`);
       return NextResponse.json(
         { 
           error: `OpenRouter API error: ${errorData.error?.message || response.statusText}`,
-          code: 'OPENROUTER_ERROR'
+          code: 'OPENROUTER_ERROR',
+          modelUsed: routing.model,
+          keyType: routing.keyType
         },
         { status: response.status }
       );
@@ -101,6 +131,11 @@ export async function POST(request: NextRequest) {
     const tokensIn = data.usage?.prompt_tokens || 0;
     const tokensOut = data.usage?.completion_tokens || 0;
     const latency = Date.now() - startTime;
+
+    console.log(`✅ [CHAT API] Response generated successfully`);
+    console.log(`📏 [CHAT API] Response length: ${aiMessage.length} chars`);
+    console.log(`🎯 [CHAT API] Tokens IN: ${tokensIn}, OUT: ${tokensOut}`);
+    console.log(`⏱️ [CHAT API] Latency: ${latency}ms`);
 
     // Log the chat interaction
     try {
@@ -130,9 +165,11 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString()
       });
     } catch (logError) {
-      console.error('Failed to log chat:', logError);
+      console.error('⚠️ [CHAT API] Failed to log chat:', logError);
       // Don't fail the request if logging fails
     }
+
+    console.log(`\n✅ [CHAT API] ===== REQUEST COMPLETE =====\n`);
 
     // Return the response
     return NextResponse.json({
@@ -152,7 +189,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Chat send error:', error);
+    console.error('❌ [CHAT API] Chat send error:', error);
     return NextResponse.json(
       { 
         error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),

@@ -1,6 +1,8 @@
 import { getApiKey } from '@/utils/getApiKey';
 
-// DEVIL DEV - 8 Key Architecture (Updated: VALID OpenRouter endpoints ONLY - NO :free suffixes)
+// 🔥 DEVIL DEV - 8 Key Architecture
+// ⚠️ CRITICAL: These model IDs must EXACTLY match what's stored in the database
+// NO modifications, NO suffixes, NO prefixes - use EXACTLY as written
 export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
   main_brain: {
     keyType: 'main_brain_key',
@@ -106,16 +108,7 @@ export interface RoutingResult {
 }
 
 /**
- * Smart auto-detection for developer tasks (PRIORITY ORDER - UPDATED)
- * 1. Debugging/Bugs (highest priority)
- * 2. Canvas/Notes
- * 3. UI/UX Mockup (screen designs, wireframes, layouts)
- * 4. Image Generation (AI-generated graphics, logos, icons)
- * 5. Fast/Quick queries (check message length)
- * 6. Coding
- * 7. Game Dev
- * 8. Image (generic)
- * 9. Main Brain (fallback)
+ * Smart auto-detection for developer tasks (PRIORITY ORDER)
  */
 export function detectCategory(message: string): string {
   const messageLower = message.toLowerCase();
@@ -189,12 +182,15 @@ export function detectCategory(message: string): string {
 
 /**
  * Route to specific model (no user selection - auto only)
+ * ⚠️ RETURNS EXACT MODEL ID - NO MODIFICATIONS
  */
 export async function routeForced(category: string): Promise<RoutingResult> {
+  console.log(`\n🔥 [ROUTING] Forced routing to category: ${category}`);
+  
   const config = KEY_MODEL_MAP[category];
   
   if (!config) {
-    // Fallback to main brain if category is invalid
+    console.warn(`⚠️ [ROUTING] Invalid category '${category}', using Main Brain fallback`);
     const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
     const apiKey = await getApiKey(mainBrainConfig.keyType);
     
@@ -202,19 +198,23 @@ export async function routeForced(category: string): Promise<RoutingResult> {
       throw new Error(`API key missing for model: ${mainBrainConfig.keyType}`);
     }
     
-    return {
+    const result = {
       keyType: mainBrainConfig.keyType,
       model: mainBrainConfig.model,
       apiKey,
       reason: `Invalid category '${category}', using Main Brain fallback`,
       category: 'main_brain'
     };
+    
+    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    return result;
   }
   
+  console.log(`🔍 [ROUTING] Fetching API key for: ${config.keyType}`);
   const apiKey = await getApiKey(config.keyType);
   
   if (!apiKey) {
-    // Try to use main brain as fallback
+    console.warn(`⚠️ [ROUTING] API key not found for ${config.keyType}, using Main Brain fallback`);
     const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
     const fallbackKey = await getApiKey(mainBrainConfig.keyType);
     
@@ -222,35 +222,50 @@ export async function routeForced(category: string): Promise<RoutingResult> {
       throw new Error(`API key missing for model: ${config.keyType}`);
     }
     
-    return {
+    const result = {
       keyType: mainBrainConfig.keyType,
       model: mainBrainConfig.model,
       apiKey: fallbackKey,
       reason: `Key not found for ${config.keyType}, using Main Brain fallback`,
       category: 'main_brain'
     };
+    
+    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    return result;
   }
   
-  return {
+  const result = {
     keyType: config.keyType,
     model: config.model,
     apiKey,
     reason: `Forced routing to: ${category}`,
     category
   };
+  
+  console.log(`✅ [ROUTING] Selected model: ${result.model}`);
+  console.log(`📋 [ROUTING] Model ID length: ${result.model.length} chars`);
+  console.log(`📋 [ROUTING] Model ID (raw): "${result.model}"`);
+  
+  return result;
 }
 
 /**
  * Auto-detect and route based on message content (primary method)
+ * ⚠️ RETURNS EXACT MODEL ID - NO MODIFICATIONS
  */
 export async function detectAndRoute(message: string): Promise<RoutingResult> {
+  console.log(`\n🔥 [ROUTING] Auto-routing for message: "${message.substring(0, 50)}..."`);
+  
   const category = detectCategory(message);
   const config = KEY_MODEL_MAP[category];
+  
+  console.log(`🎯 [ROUTING] Detected category: ${category}`);
+  console.log(`🔍 [ROUTING] Fetching API key for: ${config.keyType}`);
   
   const apiKey = await getApiKey(config.keyType);
   
   if (!apiKey) {
-    // Try to use main brain as fallback
+    console.warn(`⚠️ [ROUTING] API key not found for ${config.keyType}, using Main Brain fallback`);
     const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
     const fallbackKey = await getApiKey(mainBrainConfig.keyType);
     
@@ -258,22 +273,31 @@ export async function detectAndRoute(message: string): Promise<RoutingResult> {
       throw new Error(`API key missing for model: ${config.keyType}`);
     }
     
-    return {
+    const result = {
       keyType: mainBrainConfig.keyType,
       model: mainBrainConfig.model,
       apiKey: fallbackKey,
       reason: `Auto-detected: ${category}, but key not found. Using Main Brain fallback.`,
       category: 'main_brain'
     };
+    
+    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    return result;
   }
   
-  return {
+  const result = {
     keyType: config.keyType,
     model: config.model,
     apiKey,
     reason: `Auto-detected: ${category}`,
     category
   };
+  
+  console.log(`✅ [ROUTING] Selected model: ${result.model}`);
+  console.log(`📋 [ROUTING] Model ID length: ${result.model.length} chars`);
+  console.log(`📋 [ROUTING] Model ID (raw): "${result.model}"`);
+  
+  return result;
 }
 
 /**
