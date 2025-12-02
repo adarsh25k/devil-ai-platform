@@ -6,6 +6,7 @@ export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   keyName: text('key_name').notNull().unique(),
   encryptedValue: text('encrypted_value').notNull(),
+  modelId: text('model_id').notNull(), // 🔥 NEW: Store exact model ID from OpenRouter
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
   createdBy: text('created_by').notNull(),

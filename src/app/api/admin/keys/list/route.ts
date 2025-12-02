@@ -33,13 +33,16 @@ export async function GET(request: NextRequest) {
     // Use new persistence layer - ALWAYS reads from Turso database
     const allKeys = await readApiKeys();
     
-    // Return only non-sensitive fields
+    // Return non-sensitive fields + model_id
     const keys = allKeys.map(key => ({
       id: key.id,
       key_name: key.keyName,
+      model_id: key.modelId, // 🔥 NEW: Include model ID from database
       created_at: key.createdAt,
       created_by: key.createdBy
     }));
+
+    console.log(`[Admin] Returning ${keys.length} API keys with model IDs`);
 
     return NextResponse.json({
       success: true,

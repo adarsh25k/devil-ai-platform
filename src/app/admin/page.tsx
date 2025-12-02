@@ -33,6 +33,7 @@ interface User {
 interface ApiKey {
   id: number;
   key_name: string;
+  model_id?: string; // 🔥 NEW: Display model ID from database
   created_at: string;
   created_by: string;
 }
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
   
   const [newUser, setNewUser] = useState({ username: "", password: "" });
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [newKey, setNewKey] = useState({ key_name: "", value: "" });
+  const [newKey, setNewKey] = useState({ key_name: "", value: "", model_id: "" });
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ keyName: string; result: any } | null>(null);
   const [newText, setNewText] = useState({ key: "", value: "", category: "" });
@@ -265,7 +266,7 @@ export default function AdminDashboard() {
         const result = await response.json();
         console.log('[Admin] API key saved:', result);
         setShowAddKey(false);
-        setNewKey({ key_name: "", value: "" });
+        setNewKey({ key_name: "", value: "", model_id: "" });
         
         // CRITICAL: Force fresh reload from database
         await loadData();
@@ -775,6 +776,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow className="border-border">
                     <TableHead className="text-primary font-mono">Key Name</TableHead>
+                    <TableHead className="text-primary font-mono">Model ID</TableHead>
                     <TableHead className="text-primary font-mono">Created By</TableHead>
                     <TableHead className="text-primary font-mono">Created At</TableHead>
                     <TableHead className="text-primary font-mono">Actions</TableHead>
@@ -784,6 +786,7 @@ export default function AdminDashboard() {
                   {apiKeys.map((key) => (
                     <TableRow key={key.id} className="border-border/30">
                       <TableCell className="text-foreground font-mono text-sm">{key.key_name}</TableCell>
+                      <TableCell className="text-primary font-mono text-xs">{key.model_id || 'N/A'}</TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">{key.created_by}</TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">{new Date(key.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
@@ -810,7 +813,7 @@ export default function AdminDashboard() {
                   ))}
                   {apiKeys.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8 font-mono">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8 font-mono">
                         No API keys configured
                       </TableCell>
                     </TableRow>
@@ -1192,6 +1195,18 @@ export default function AdminDashboard() {
                 required
               />
               <p className="text-xs text-muted-foreground font-mono">🔒 AES-256-GCM encrypted</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground font-mono">🔥 Model ID (EXACT OpenRouter ID)</Label>
+              <Input
+                value={newKey.model_id}
+                onChange={(e) => setNewKey({ ...newKey, model_id: e.target.value })}
+                className="bg-input border-border text-foreground font-mono vscode-hover"
+                placeholder="e.g., xai/grok-4.1-fast"
+                required
+              />
+              <p className="text-xs text-yellow-500 font-mono">⚠️ CRITICAL: Copy EXACT model ID from OpenRouter - NO modifications!</p>
+              <p className="text-xs text-muted-foreground font-mono">Examples: xai/grok-4.1-fast, qwen/qwen3-coder-480b-a35b</p>
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               Save Key

@@ -1,52 +1,43 @@
-import { getApiKey } from '@/utils/getApiKey';
+import { getKeyAndModel } from '@/lib/apiKeyPersistence';
 
 // 🔥 DEVIL DEV - 8 Key Architecture
-// ⚠️ CRITICAL: These model IDs must EXACTLY match what's stored in the database
-// NO modifications, NO suffixes, NO prefixes - use EXACTLY as written
-export const KEY_MODEL_MAP: Record<string, { keyType: string; model: string; description: string }> = {
+// ⚠️ CRITICAL: Model IDs are now pulled from DATABASE - this map is for category detection ONLY
+export const KEY_TYPE_MAP: Record<string, { keyType: string; description: string }> = {
   main_brain: {
     keyType: 'main_brain_key',
-    model: 'nousresearch/nous-hermes-3-llama-3-405b',
     description: 'Main Brain - General dev AI, planning, architecture'
   },
   coding: {
     keyType: 'coding_key',
-    model: 'qwen/qwen3-coder-480b-a35b',
     description: 'Coding Expert - Debugging, backend, frontend, APIs'
   },
   debugging: {
     keyType: 'debugging_api_key',
-    model: 'tngtech/deepseek-r1t2-chimera',
     description: 'Debugging / Fix Bugs - Error resolution, stacktrace analysis'
   },
   fast: {
     keyType: 'fast_api_key',
-    model: 'xai/grok-4.1-fast',
     description: 'Fast Daily Use - Quick answers, short messages'
   },
   uiux_mockup: {
     keyType: 'uiux_mockup_api_key',
-    model: 'meta-llama/llama-3.1-70b-instruct',
     description: 'UI/UX & Mockup - Screen design, wireframes, Figma layouts'
   },
   image_generation: {
     keyType: 'image_generation_api_key',
-    model: 'veniceai/uncensored',
     description: 'Image Generation - AI-generated graphics, logos, icons, concept art'
   },
   game_dev: {
     keyType: 'game_dev_key',
-    model: 'moonshotai/kimi-k2',
     description: 'Game Developer - Game logic, level design, story'
   },
   canvas_notes: {
     keyType: 'canvas_notes_api_key',
-    model: 'meta-llama/llama-3.2-3b-instruct',
     description: 'Canvas / PPT / Notes - Presentations, cheat sheets, study notes'
   }
 };
 
-// Smart detection patterns for developer tasks (UPDATED: UI/UX Mockup + Image Generation separated)
+// Smart detection patterns for developer tasks
 const DETECTION_PATTERNS = {
   debugging: [
     'error', 'fix bug', 'debug', 'exception', 'stacktrace', 'crash',
@@ -82,7 +73,7 @@ const DETECTION_PATTERNS = {
     'illustration', 'graphic design', 'visual art'
   ],
   coding: [
-    'bug', 'api', 'backend', 'database', 'auth', 'jwt', 'server',
+    'api', 'backend', 'database', 'auth', 'jwt', 'server',
     'code', 'function', 'class', 'variable', 'syntax', 'compile',
     'javascript', 'python', 'java', 'typescript', 'react', 'node',
     'sql', 'query', 'endpoint', 'route', 'middleware'
@@ -92,10 +83,6 @@ const DETECTION_PATTERNS = {
     'gameplay', 'game mechanics', 'game dev', 'unity', 'unreal',
     'player', 'npc', 'inventory', 'character', 'boss fight',
     'game logic', 'level design', 'game story', 'game narrative'
-  ],
-  image: [
-    'asset', 'character image', 'splash art',
-    'draw', 'artwork', 'thumbnail', 'sprite'
   ]
 };
 
@@ -122,7 +109,7 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 2: Canvas/Notes patterns (presentations, notes, cheat sheets)
+  // Priority 2: Canvas/Notes patterns
   for (const pattern of DETECTION_PATTERNS.canvas_notes) {
     if (messageLower.includes(pattern)) {
       console.log(`📝 Routing to CANVAS/NOTES: detected pattern "${pattern}"`);
@@ -130,7 +117,7 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 3: UI/UX Mockup (screen designs, wireframes, Figma layouts)
+  // Priority 3: UI/UX Mockup
   for (const pattern of DETECTION_PATTERNS.uiux_mockup) {
     if (messageLower.includes(pattern)) {
       console.log(`🎨 Routing to UI/UX MOCKUP: detected pattern "${pattern}"`);
@@ -138,7 +125,7 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 4: Image Generation (AI images, logos, icons, concept art)
+  // Priority 4: Image Generation
   for (const pattern of DETECTION_PATTERNS.image_generation) {
     if (messageLower.includes(pattern)) {
       console.log(`🖼️ Routing to IMAGE GENERATION: detected pattern "${pattern}"`);
@@ -146,7 +133,7 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Priority 5: Fast queries (short messages or quick keywords)
+  // Priority 5: Fast queries (short messages)
   if (messageLength < 50) {
     for (const pattern of DETECTION_PATTERNS.fast) {
       if (messageLower.includes(pattern)) {
@@ -175,127 +162,125 @@ export function detectCategory(message: string): string {
     }
   }
   
-  // Default to main brain for planning, architecture, general queries
+  // Default to main brain
   console.log(`🧠 Routing to MAIN BRAIN: no specific patterns detected`);
   return 'main_brain';
 }
 
 /**
- * Route to specific model (no user selection - auto only)
- * ⚠️ RETURNS EXACT MODEL ID - NO MODIFICATIONS
+ * 🔥 NEW: Pull API key AND model ID from database - single source of truth
+ * Returns EXACT model ID from database - NO MODIFICATIONS
  */
 export async function routeForced(category: string): Promise<RoutingResult> {
   console.log(`\n🔥 [ROUTING] Forced routing to category: ${category}`);
   
-  const config = KEY_MODEL_MAP[category];
+  const config = KEY_TYPE_MAP[category];
   
   if (!config) {
     console.warn(`⚠️ [ROUTING] Invalid category '${category}', using Main Brain fallback`);
-    const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
-    const apiKey = await getApiKey(mainBrainConfig.keyType);
+    const mainBrainConfig = KEY_TYPE_MAP['main_brain'];
+    const keyData = await getKeyAndModel(mainBrainConfig.keyType);
     
-    if (!apiKey) {
-      throw new Error(`API key missing for model: ${mainBrainConfig.keyType}`);
+    if (!keyData) {
+      throw new Error(`API key and model missing for: ${mainBrainConfig.keyType}`);
     }
     
     const result = {
       keyType: mainBrainConfig.keyType,
-      model: mainBrainConfig.model,
-      apiKey,
+      model: keyData.modelId,
+      apiKey: keyData.apiKey,
       reason: `Invalid category '${category}', using Main Brain fallback`,
       category: 'main_brain'
     };
     
-    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    console.log(`✅ [ROUTING] Fallback model from DB: "${result.model}"`);
     return result;
   }
   
-  console.log(`🔍 [ROUTING] Fetching API key for: ${config.keyType}`);
-  const apiKey = await getApiKey(config.keyType);
+  console.log(`🔍 [ROUTING] Fetching key and model from DB for: ${config.keyType}`);
+  const keyData = await getKeyAndModel(config.keyType);
   
-  if (!apiKey) {
-    console.warn(`⚠️ [ROUTING] API key not found for ${config.keyType}, using Main Brain fallback`);
-    const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
-    const fallbackKey = await getApiKey(mainBrainConfig.keyType);
+  if (!keyData) {
+    console.warn(`⚠️ [ROUTING] Key/Model not found for ${config.keyType}, using Main Brain fallback`);
+    const mainBrainConfig = KEY_TYPE_MAP['main_brain'];
+    const fallbackData = await getKeyAndModel(mainBrainConfig.keyType);
     
-    if (!fallbackKey) {
-      throw new Error(`API key missing for model: ${config.keyType}`);
+    if (!fallbackData) {
+      throw new Error(`API key and model missing for: ${config.keyType}`);
     }
     
     const result = {
       keyType: mainBrainConfig.keyType,
-      model: mainBrainConfig.model,
-      apiKey: fallbackKey,
+      model: fallbackData.modelId,
+      apiKey: fallbackData.apiKey,
       reason: `Key not found for ${config.keyType}, using Main Brain fallback`,
       category: 'main_brain'
     };
     
-    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    console.log(`✅ [ROUTING] Fallback model from DB: "${result.model}"`);
     return result;
   }
   
   const result = {
     keyType: config.keyType,
-    model: config.model,
-    apiKey,
+    model: keyData.modelId,
+    apiKey: keyData.apiKey,
     reason: `Forced routing to: ${category}`,
     category
   };
   
-  console.log(`✅ [ROUTING] Selected model: ${result.model}`);
-  console.log(`📋 [ROUTING] Model ID length: ${result.model.length} chars`);
-  console.log(`📋 [ROUTING] Model ID (raw): "${result.model}"`);
+  console.log(`✅ [ROUTING] Model from DB: "${result.model}"`);
+  console.log(`🔥 [ROUTING] FINAL MODEL SENT: "${result.model}"`);
   
   return result;
 }
 
 /**
- * Auto-detect and route based on message content (primary method)
- * ⚠️ RETURNS EXACT MODEL ID - NO MODIFICATIONS
+ * 🔥 NEW: Auto-detect category and pull from database
+ * Returns EXACT model ID from database - NO MODIFICATIONS
  */
 export async function detectAndRoute(message: string): Promise<RoutingResult> {
   console.log(`\n🔥 [ROUTING] Auto-routing for message: "${message.substring(0, 50)}..."`);
   
   const category = detectCategory(message);
-  const config = KEY_MODEL_MAP[category];
+  const config = KEY_TYPE_MAP[category];
   
   console.log(`🎯 [ROUTING] Detected category: ${category}`);
-  console.log(`🔍 [ROUTING] Fetching API key for: ${config.keyType}`);
+  console.log(`🔍 [ROUTING] Fetching key and model from DB for: ${config.keyType}`);
   
-  const apiKey = await getApiKey(config.keyType);
+  const keyData = await getKeyAndModel(config.keyType);
   
-  if (!apiKey) {
-    console.warn(`⚠️ [ROUTING] API key not found for ${config.keyType}, using Main Brain fallback`);
-    const mainBrainConfig = KEY_MODEL_MAP['main_brain'];
-    const fallbackKey = await getApiKey(mainBrainConfig.keyType);
+  if (!keyData) {
+    console.warn(`⚠️ [ROUTING] Key/Model not found for ${config.keyType}, using Main Brain fallback`);
+    const mainBrainConfig = KEY_TYPE_MAP['main_brain'];
+    const fallbackData = await getKeyAndModel(mainBrainConfig.keyType);
     
-    if (!fallbackKey) {
-      throw new Error(`API key missing for model: ${config.keyType}`);
+    if (!fallbackData) {
+      throw new Error(`API key and model missing for: ${config.keyType}`);
     }
     
     const result = {
       keyType: mainBrainConfig.keyType,
-      model: mainBrainConfig.model,
-      apiKey: fallbackKey,
+      model: fallbackData.modelId,
+      apiKey: fallbackData.apiKey,
       reason: `Auto-detected: ${category}, but key not found. Using Main Brain fallback.`,
       category: 'main_brain'
     };
     
-    console.log(`✅ [ROUTING] Fallback model: ${result.model}`);
+    console.log(`✅ [ROUTING] Fallback model from DB: "${result.model}"`);
     return result;
   }
   
   const result = {
     keyType: config.keyType,
-    model: config.model,
-    apiKey,
+    model: keyData.modelId,
+    apiKey: keyData.apiKey,
     reason: `Auto-detected: ${category}`,
     category
   };
   
-  console.log(`✅ [ROUTING] Selected model: ${result.model}`);
-  console.log(`📋 [ROUTING] Model ID length: ${result.model.length} chars`);
-  console.log(`📋 [ROUTING] Model ID (raw): "${result.model}"`);
+  console.log(`✅ [ROUTING] Model from DB: "${result.model}"`);
+  console.log(`🔥 [ROUTING] FINAL MODEL SENT: "${result.model}"`);
   
   return result;
 }
@@ -303,16 +288,15 @@ export async function detectAndRoute(message: string): Promise<RoutingResult> {
 /**
  * Get all available model categories with their status
  */
-export async function getAvailableModels(): Promise<Array<{ category: string; model: string; description: string; hasKey: boolean }>> {
+export async function getAvailableModels(): Promise<Array<{ category: string; description: string; hasKey: boolean }>> {
   const results = [];
   
-  for (const [category, config] of Object.entries(KEY_MODEL_MAP)) {
-    const apiKey = await getApiKey(config.keyType);
+  for (const [category, config] of Object.entries(KEY_TYPE_MAP)) {
+    const keyData = await getKeyAndModel(config.keyType);
     results.push({
       category,
-      model: config.model,
       description: config.description,
-      hasKey: !!apiKey
+      hasKey: !!keyData
     });
   }
   
