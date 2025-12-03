@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -22,7 +21,7 @@ interface Message {
   content: string;
   timestamp: number;
   model?: string;
-  routingReason?: string;
+  category?: string;
 }
 
 interface Chat {
@@ -37,19 +36,6 @@ interface Chat {
 
 const DEFAULT_FOLDERS = ["New Chat", "My Projects", "Snippets", "Game Design", "UI/UX Drafts"];
 
-// 🔥 8 AI Models for DEVIL DEV
-const AI_MODELS = [
-  { value: "auto", label: "🤖 Auto-Route (Smart)", category: "auto" },
-  { value: "main_brain", label: "🧠 Main Brain", category: "main_brain" },
-  { value: "coding", label: "💻 Coding / Full Stack", category: "coding" },
-  { value: "debugging", label: "🐛 Debugging", category: "debugging" },
-  { value: "uiux_mockup", label: "🎨 UI/UX Mockups", category: "uiux_mockup" },
-  { value: "game_dev", label: "🎮 Game Dev", category: "game_dev" },
-  { value: "fast", label: "⚡ Fast Daily Use", category: "fast" },
-  { value: "canvas_notes", label: "📝 Canvas / PPT / Notes", category: "canvas_notes" },
-  { value: "image_generation", label: "🖼️ Image Generation", category: "image_generation" },
-];
-
 export default function ChatPage() {
   const router = useRouter();
   const [chats, setChats] = useState<Chat[]>([]);
@@ -58,7 +44,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("All");
-  const [selectedModel, setSelectedModel] = useState<string>("auto");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [userId, setUserId] = useState("");
@@ -177,11 +162,6 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      // Get conversation history
-      const currentChatData = chats.find((c) => c.id === currentChatId);
-      const conversationHistory = currentChatData?.messages.slice(-10) || [];
-
-      // 🔥 NEW: Include selected model in API call
       const response = await fetch("/api/chat/send", {
         method: "POST",
         headers: {
@@ -191,41 +171,87 @@ export default function ChatPage() {
           message: userMessage.content,
           userId,
           chatId: currentChatId,
-          conversationHistory,
-          selectedModel, // 🔥 Pass user's model selection
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to get response");
+        throw new Error("Failed to get response");
       }
 
-      const data = await response.json();
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      if (!reader) {
+        throw new Error("No response stream");
+      }
 
-      const aiMessage: Message = {
-        id: `msg_${Date.now()}`,
-        role: "ai",
-        content: data.message,
-        timestamp: Date.now(),
-        model: data.model,
-        routingReason: data.routingReason,
-      };
+      let aiMessageContent = "";
+      let aiModel = "";
+      let aiCategory = "";
 
-      setChats((prevChats) =>
-        prevChats.map((c) =>
-          c.id === currentChatId
-            ? { ...c, messages: [...c.messages, aiMessage], updatedAt: Date.now() }
-            : c
-        )
-      );
+      // Create placeholder AI message
+      const aiMessageId = `msg_${Date.now()}`;
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+
+              if (parsed.content) {
+                aiMessageContent += parsed.content;
+                aiModel = parsed.model || aiModel;
+                aiCategory = parsed.category || aiCategory;
+
+                // Update message in real-time
+                setChats((prevChats) =>
+                  prevChats.map((c) =>
+                    c.id === currentChatId
+                      ? {
+                          ...c,
+                          messages: [
+                            ...c.messages.filter(m => m.id !== aiMessageId),
+                            {
+                              id: aiMessageId,
+                              role: "ai" as const,
+                              content: aiMessageContent,
+                              timestamp: Date.now(),
+                              model: aiModel,
+                              category: aiCategory,
+                            },
+                          ],
+                          updatedAt: Date.now(),
+                        }
+                      : c
+                  )
+                );
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       
       const errorMessage: Message = {
         id: `msg_${Date.now()}`,
         role: "ai",
-        content: `Error: ${error instanceof Error ? error.message : "Failed to get response. Please check if OpenRouter API keys are configured in Admin panel."}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to get response. Please check if OpenRouter API key is configured in Admin panel."}`,
         timestamp: Date.now(),
       };
 
@@ -241,7 +267,7 @@ export default function ChatPage() {
     }
   };
 
-  const downloadChat = (format: "json" | "txt" | "pdf") => {
+  const downloadChat = (format: "json" | "txt") => {
     if (!currentChat) return;
 
     let content = "";
@@ -286,11 +312,28 @@ export default function ChatPage() {
     router.push("/");
   };
 
+  const getCategoryDisplay = (category?: string) => {
+    const categoryMap: Record<string, { icon: string; name: string }> = {
+      main_brain: { icon: "🧠", name: "Main Brain" },
+      coding: { icon: "💻", name: "Coding" },
+      debugging: { icon: "🐛", name: "Debugging" },
+      uiux: { icon: "🎨", name: "UI/UX" },
+      gamedev: { icon: "🎮", name: "Game Dev" },
+      fast: { icon: "⚡", name: "Fast" },
+      canvas: { icon: "📝", name: "Canvas" },
+      image: { icon: "🖼️", name: "Image" },
+    };
+
+    return category && categoryMap[category] 
+      ? `${categoryMap[category].icon} ${categoryMap[category].name}`
+      : "🤖 Auto";
+  };
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       <div className="grid-background" />
 
-      {/* VSCode-like Sidebar */}
+      {/* Sidebar */}
       <div className="relative z-10 w-80 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col">
         {/* Sidebar Header */}
         <div className="p-4 border-b border-border">
@@ -309,7 +352,7 @@ export default function ChatPage() {
         {/* Search & Filter */}
         <div className="p-4 space-y-2 border-b border-border">
           <Input
-            placeholder="🔍 Search projects..."
+            placeholder="🔍 Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-input border-border text-foreground font-mono text-sm vscode-hover"
@@ -329,7 +372,7 @@ export default function ChatPage() {
           </Select>
         </div>
 
-        {/* Chat List - Explorer Style */}
+        {/* Chat List */}
         <ScrollArea className="flex-1 p-2">
           {filteredChats.map((chat) => (
             <div
@@ -409,7 +452,7 @@ export default function ChatPage() {
       <div className="relative z-10 flex-1 flex flex-col">
         {currentChat ? (
           <>
-            {/* Chat Header - Tab Style */}
+            {/* Chat Header */}
             <div className="p-3 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="px-3 py-1 bg-primary/10 border-l-2 border-primary rounded">
@@ -460,14 +503,22 @@ export default function ChatPage() {
               </div>
             </div>
 
-            {/* Messages - Terminal Output Style */}
+            {/* Messages */}
             <ScrollArea className="flex-1 p-6">
               {currentChat.messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center space-y-4">
                     <div className="text-6xl mb-4">⚡</div>
-                    <p className="text-xl font-mono text-primary">Ready to Build</p>
-                    <p className="text-sm text-muted-foreground font-mono">Ask about coding, UI/UX, or game development</p>
+                    <p className="text-xl font-mono text-primary">Intelligent AI Routing</p>
+                    <p className="text-sm text-muted-foreground font-mono">AI automatically selects the best model for your task</p>
+                    <div className="grid grid-cols-2 gap-2 mt-6 text-xs text-muted-foreground font-mono">
+                      <div>🧠 Complex reasoning</div>
+                      <div>💻 Coding tasks</div>
+                      <div>🐛 Debugging issues</div>
+                      <div>🎨 UI/UX design</div>
+                      <div>🎮 Game development</div>
+                      <div>⚡ Quick answers</div>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -482,14 +533,14 @@ export default function ChatPage() {
                           msg.role === "user" ? "user-bubble" : "ai-bubble"
                         }`}
                       >
-                        {msg.role === "ai" && msg.model && (
+                        {msg.role === "ai" && (msg.model || msg.category) && (
                           <div className="mb-2 pb-2 border-b border-border/30">
                             <p className="text-xs font-mono text-primary">
-                              🤖 Model: <span className="font-bold">{msg.model}</span>
+                              {getCategoryDisplay(msg.category)}
                             </p>
-                            {msg.routingReason && (
+                            {msg.model && (
                               <p className="text-[10px] text-muted-foreground font-mono mt-1">
-                                📍 {msg.routingReason}
+                                Model: {msg.model}
                               </p>
                             )}
                           </div>
@@ -505,7 +556,7 @@ export default function ChatPage() {
                     <div className="flex justify-start">
                       <div className="ai-bubble">
                         <p className="animate-pulse font-mono text-sm">
-                          Processing<span className="terminal-cursor">_</span>
+                          🤖 AI is thinking<span className="terminal-cursor">_</span>
                         </p>
                       </div>
                     </div>
@@ -515,33 +566,9 @@ export default function ChatPage() {
               )}
             </ScrollArea>
 
-            {/* Message Input - Command Line Style */}
+            {/* Message Input */}
             <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
-              <div className="max-w-4xl mx-auto space-y-3">
-                {/* 🔥 NEW: Model Selection Dropdown */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground font-mono">AI Model:</span>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="bg-input border-border text-foreground font-mono text-xs vscode-hover w-64">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      {AI_MODELS.map((model) => (
-                        <SelectItem 
-                          key={model.value} 
-                          value={model.value} 
-                          className="text-foreground hover:bg-accent/10 font-mono text-xs"
-                        >
-                          {model.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedModel !== "auto" && (
-                    <span className="text-xs text-primary font-mono">✓ Manual Mode</span>
-                  )}
-                </div>
-
+              <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-3 text-primary font-mono text-sm">{'>'}</span>
@@ -554,7 +581,7 @@ export default function ChatPage() {
                           sendMessage();
                         }
                       }}
-                      placeholder="Enter command..."
+                      placeholder="Ask anything... AI will route to the best model"
                       className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[60px] resize-none font-mono text-sm pl-8 vscode-hover"
                       disabled={loading}
                     />
@@ -567,8 +594,8 @@ export default function ChatPage() {
                     ▶
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground text-center font-mono">
-                  💡 {selectedModel === "auto" ? "Smart routing enabled" : "Manual model selected"} • Press Enter to send
+                <p className="text-xs text-muted-foreground text-center font-mono mt-2">
+                  🤖 Intelligent routing enabled • Press Enter to send
                 </p>
               </div>
             </div>

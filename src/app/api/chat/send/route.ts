@@ -1,201 +1,207 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { chatLogs } from '@/db/schema';
-import { detectAndRoute, routeForced } from '@/lib/modelRouter';
+import { apiKeys, modelConfig, chatMessages, chats } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import crypto from 'crypto';
+import { routeMessage } from '@/lib/intelligentRouter';
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-encryption-key-change-in-production-32bytes!!';
+const ALGORITHM = 'aes-256-gcm';
+
+function decryptValue(encryptedText: string): string {
+  const parts = encryptedText.split(':');
+  const iv = Buffer.from(parts[0], 'hex');
+  const authTag = Buffer.from(parts[1], 'hex');
+  const encrypted = parts[2];
+  
+  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf-8').slice(0, 32), iv);
+  decipher.setAuthTag(authTag);
+  
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  
+  return decrypted;
+}
+
+async function getOpenRouterKey(): Promise<string | null> {
+  try {
+    const result = await db.select().from(apiKeys).where(eq(apiKeys.keyName, 'openrouter'));
+    if (result.length === 0) return null;
+    return decryptValue(result[0].encryptedValue);
+  } catch (error) {
+    console.error('[Chat] Error getting API key:', error);
+    return null;
+  }
+}
+
+async function getModelIdForCategory(category: string): Promise<string | null> {
+  try {
+    const result = await db.select().from(modelConfig).where(eq(modelConfig.category, category));
+    if (result.length === 0) return null;
+    return result[0].modelId;
+  } catch (error) {
+    console.error('[Chat] Error getting model ID:', error);
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
+  const encoder = new TextEncoder();
   
-  try {
-    const body = await request.json();
-    const { message, userId, chatId, conversationHistory = [], selectedModel, debug = false } = body;
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const body = await request.json();
+        const { message, chatId, userId } = body;
 
-    // Validate inputs
-    if (!message || !userId || !chatId) {
-      return NextResponse.json(
-        { error: 'Missing required fields: message, userId, chatId' },
-        { status: 400 }
-      );
-    }
+        if (!message || !chatId || !userId) {
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+            error: 'Missing required fields' 
+          }) + '\n\n'));
+          controller.close();
+          return;
+        }
 
-    console.log('\n🔥🔥🔥 [CHAT API] ===== NEW CHAT REQUEST =====');
-    console.log(`📨 [CHAT API] Message: "${message.substring(0, 100)}..."`);
-    console.log(`👤 [CHAT API] User: ${userId}, Chat: ${chatId}`);
+        // Get OpenRouter API key
+        const apiKey = await getOpenRouterKey();
+        if (!apiKey) {
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+            error: 'OpenRouter API key not configured. Please contact admin.' 
+          }) + '\n\n'));
+          controller.close();
+          return;
+        }
 
-    // Route to appropriate model and get API key
-    let routing;
-    try {
-      if (selectedModel && selectedModel !== 'auto') {
-        console.log(`🎯 [CHAT API] User selected model: ${selectedModel}`);
-        routing = await routeForced(selectedModel);
-      } else {
-        console.log(`🤖 [CHAT API] Auto-detecting model...`);
-        routing = await detectAndRoute(message);
+        // Route message to appropriate model
+        const routing = routeMessage(message);
+        const modelId = await getModelIdForCategory(routing.category);
+        
+        if (!modelId) {
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+            error: `Model not configured for category: ${routing.category}` 
+          }) + '\n\n'));
+          controller.close();
+          return;
+        }
+
+        console.log('🚀 [Chat] Sending to OpenRouter:', {
+          model: modelId,
+          category: routing.category,
+          confidence: routing.confidence,
+          reason: routing.reason,
+        });
+
+        // Save user message
+        await db.insert(chatMessages).values({
+          chatId,
+          role: 'user',
+          content: message,
+          modelUsed: null,
+          createdAt: new Date().toISOString(),
+        });
+
+        // Update chat timestamp
+        await db
+          .update(chats)
+          .set({ updatedAt: new Date().toISOString() })
+          .where(eq(chats.chatId, chatId));
+
+        // Call OpenRouter API
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+            'X-Title': 'I AM DEVIL',
+          },
+          body: JSON.stringify({
+            model: modelId,
+            messages: [{ role: 'user', content: message }],
+            stream: true,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[Chat] OpenRouter error:', errorText);
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+            error: `OpenRouter API error: ${response.status}` 
+          }) + '\n\n'));
+          controller.close();
+          return;
+        }
+
+        // Stream response
+        const reader = response.body?.getReader();
+        if (!reader) {
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+            error: 'No response stream' 
+          }) + '\n\n'));
+          controller.close();
+          return;
+        }
+
+        let fullResponse = '';
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                
+                if (content) {
+                  fullResponse += content;
+                  controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+                    content,
+                    model: modelId,
+                    category: routing.category,
+                  }) + '\n\n'));
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+
+        // Save assistant message
+        await db.insert(chatMessages).values({
+          chatId,
+          role: 'assistant',
+          content: fullResponse,
+          modelUsed: modelId,
+          createdAt: new Date().toISOString(),
+        });
+
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      } catch (error) {
+        console.error('[Chat] Error:', error);
+        controller.enqueue(encoder.encode('data: ' + JSON.stringify({ 
+          error: 'Internal server error' 
+        }) + '\n\n'));
+        controller.close();
       }
-    } catch (error) {
-      console.error('❌ [CHAT API] Routing error:', error);
-      return NextResponse.json(
-        { 
-          error: error instanceof Error ? error.message : 'Routing error',
-          code: 'ROUTING_ERROR' 
-        },
-        { status: 500 }
-      );
-    }
+    },
+  });
 
-    console.log(`\n✅ [CHAT API] ===== ROUTING COMPLETE =====`);
-    console.log(`📋 [CHAT API] Category: ${routing.category}`);
-    console.log(`🔑 [CHAT API] Key Type: ${routing.keyType}`);
-    console.log(`🤖 [CHAT API] Model ID: "${routing.model}"`);
-    console.log(`📏 [CHAT API] Model ID Length: ${routing.model.length} chars`);
-    console.log(`🔍 [CHAT API] Model ID (byte-by-byte): ${Array.from(routing.model).map(c => c.charCodeAt(0)).join(',')}`);
-    console.log(`💡 [CHAT API] Reason: ${routing.reason}`);
-    console.log(`🔐 [CHAT API] API Key: ${routing.apiKey ? `${routing.apiKey.substring(0, 10)}...${routing.apiKey.substring(routing.apiKey.length - 4)}` : 'MISSING'}`);
-
-    // Debug mode: return routing info without calling API
-    if (debug) {
-      return NextResponse.json({
-        debug: true,
-        chosenModel: routing.model,
-        chosenKey: routing.keyType,
-        routerReason: routing.reason,
-        category: routing.category,
-        prompt: message,
-        message: '[DEBUG MODE] - API call skipped'
-      });
-    }
-
-    // Prepare messages for OpenRouter
-    const messages = [
-      {
-        role: 'system',
-        content: 'You are DEVIL DEV - an expert AI assistant specializing in software development, game development, and UI/UX design. Your expertise includes:\n\n- **Coding**: Debugging, backend development, frontend development, API design, database architecture, algorithms, and full-stack solutions across multiple languages (JavaScript, TypeScript, Python, Java, C++, etc.)\n- **Game Development**: Game mechanics, level design, game story writing, AI behavior, physics, multiplayer systems, Unity, Unreal Engine, and game engine architecture\n- **UI/UX Design**: Website mockups, user interface design, user experience optimization, responsive design, accessibility, and design systems\n- **Architecture & Planning**: System design, software architecture, tech stack selection, scalability planning, and project structure\n\nProvide expert, detailed, and practical responses. Include code examples when relevant. Be direct and focus on solving real development challenges.'
-      },
-      ...conversationHistory.map((msg: any) => ({
-        role: msg.role === 'ai' ? 'assistant' : 'user',
-        content: msg.content
-      })),
-      {
-        role: 'user',
-        content: message
-      }
-    ];
-
-    console.log(`\n🚀 [CHAT API] ===== CALLING OPENROUTER API =====`);
-    console.log(`🌐 [CHAT API] Endpoint: https://openrouter.ai/api/v1/chat/completions`);
-    console.log(`🤖 [CHAT API] Model Parameter: "${routing.model}"`);
-    console.log(`📊 [CHAT API] Messages Count: ${messages.length}`);
-
-    // Call OpenRouter API
-    const requestBody = {
-      model: routing.model, // ⚠️ CRITICAL: Using EXACT model ID from routing
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000
-    };
-
-    console.log(`📦 [CHAT API] Request Body Model Field: "${requestBody.model}"`);
-
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${routing.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
-        'X-Title': 'DEVIL DEV'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    console.log(`\n📡 [CHAT API] ===== OPENROUTER RESPONSE =====`);
-    console.log(`📊 [CHAT API] Status: ${response.status} ${response.statusText}`);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('❌ [CHAT API] OpenRouter API error:', JSON.stringify(errorData, null, 2));
-      console.error(`❌ [CHAT API] Model sent: "${routing.model}"`);
-      console.error(`❌ [CHAT API] Key type: ${routing.keyType}`);
-      return NextResponse.json(
-        { 
-          error: `OpenRouter API error: ${errorData.error?.message || response.statusText}`,
-          code: 'OPENROUTER_ERROR',
-          modelUsed: routing.model,
-          keyType: routing.keyType
-        },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    const aiMessage = data.choices[0]?.message?.content || 'No response generated';
-    const tokensIn = data.usage?.prompt_tokens || 0;
-    const tokensOut = data.usage?.completion_tokens || 0;
-    const latency = Date.now() - startTime;
-
-    console.log(`✅ [CHAT API] Response generated successfully`);
-    console.log(`📏 [CHAT API] Response length: ${aiMessage.length} chars`);
-    console.log(`🎯 [CHAT API] Tokens IN: ${tokensIn}, OUT: ${tokensOut}`);
-    console.log(`⏱️ [CHAT API] Latency: ${latency}ms`);
-
-    // Log the chat interaction
-    try {
-      await db.insert(chatLogs).values({
-        userId,
-        chatId,
-        messageRole: 'user',
-        messageContent: message,
-        modelUsed: routing.model,
-        tokensIn,
-        tokensOut: 0,
-        routingReason: routing.reason,
-        latency: 0,
-        createdAt: new Date().toISOString()
-      });
-
-      await db.insert(chatLogs).values({
-        userId,
-        chatId,
-        messageRole: 'assistant',
-        messageContent: aiMessage,
-        modelUsed: routing.model,
-        tokensIn: 0,
-        tokensOut,
-        routingReason: routing.reason,
-        latency,
-        createdAt: new Date().toISOString()
-      });
-    } catch (logError) {
-      console.error('⚠️ [CHAT API] Failed to log chat:', logError);
-      // Don't fail the request if logging fails
-    }
-
-    console.log(`\n✅ [CHAT API] ===== REQUEST COMPLETE =====\n`);
-
-    // Return the response
-    return NextResponse.json({
-      message: aiMessage,
-      model: routing.model,
-      routingReason: routing.reason,
-      category: routing.category,
-      keyType: routing.keyType,
-      citations: [],
-      raw: data,
-      usage: {
-        tokensIn,
-        tokensOut,
-        totalTokens: tokensIn + tokensOut
-      },
-      latency
-    });
-
-  } catch (error) {
-    console.error('❌ [CHAT API] Chat send error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
-        code: 'INTERNAL_ERROR'
-      },
-      { status: 500 }
-    );
-  }
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }

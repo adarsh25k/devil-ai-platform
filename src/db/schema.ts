@@ -1,15 +1,46 @@
 import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
 
-// Add new tables for I AM DEVIL v2.0
-
+// Simplified API key storage - single OpenRouter key
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  keyName: text('key_name').notNull().unique(),
+  keyName: text('key_name').notNull().unique(), // Always 'openrouter'
   encryptedValue: text('encrypted_value').notNull(),
-  modelId: text('model_id').notNull(), // 🔥 NEW: Store exact model ID from OpenRouter
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
   createdBy: text('created_by').notNull(),
+});
+
+// Model configuration - predefined 8 models
+export const modelConfig = sqliteTable('model_config', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  category: text('category').notNull().unique(), // main_brain, coding, debugging, etc.
+  modelId: text('model_id').notNull(), // Exact OpenRouter model ID
+  displayName: text('display_name').notNull(),
+  description: text('description').notNull(),
+  icon: text('icon').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).default(true),
+  updatedAt: text('updated_at').notNull(),
+});
+
+// Chat management
+export const chats = sqliteTable('chats', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  chatId: text('chat_id').notNull().unique(),
+  userId: text('user_id').notNull(),
+  title: text('title').notNull(),
+  isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+// Chat messages
+export const chatMessages = sqliteTable('chat_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  chatId: text('chat_id').notNull(),
+  role: text('role').notNull(), // user or assistant
+  content: text('content').notNull(),
+  modelUsed: text('model_used'), // Which model was used
+  createdAt: text('created_at').notNull(),
 });
 
 export const uiTexts = sqliteTable('ui_texts', {
@@ -59,17 +90,6 @@ export const userThemes = sqliteTable('user_themes', {
   userId: text('user_id').notNull(),
   themeId: integer('theme_id').notNull().references(() => themes.id),
   updatedAt: text('updated_at').notNull(),
-});
-
-export const modelRoutingRules = sqliteTable('model_routing_rules', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  ruleName: text('rule_name').notNull(),
-  triggerType: text('trigger_type').notNull(),
-  triggerValue: text('trigger_value').notNull(),
-  targetModel: text('target_model').notNull(),
-  priority: integer('priority').default(0),
-  isEnabled: integer('is_enabled', { mode: 'boolean' }).default(true),
-  createdAt: text('created_at').notNull(),
 });
 
 export const globalConfig = sqliteTable('global_config', {

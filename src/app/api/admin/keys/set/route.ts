@@ -1,80 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/db';
-import { saveApiKey } from '@/lib/apiKeyPersistence';
+import { db } from '@/db';
+import { apiKeys } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import crypto from 'crypto';
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-encryption-key-change-in-production-32bytes!!';
+const ALGORITHM = 'aes-256-gcm';
+
+function encryptValue(text: string): string {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'utf-8').slice(0, 32), iv);
+  
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  const authTag = cipher.getAuthTag();
+  return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-    
-    const token = authHeader.substring(7);
-    
-    try {
-      const tokenData = await verifyToken(token);
-      
-      if (!tokenData || !tokenData.username) {
-        return NextResponse.json(
-          { error: 'Invalid or expired token' },
-          { status: 401 }
-        );
-      }
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
-    
     const body = await request.json();
-    const { key_name, value, model_id } = body;
-    
-    // Validate required fields
-    if (!key_name || typeof key_name !== 'string') {
+    const { value } = body;
+
+    if (!value || typeof value !== 'string' || !value.startsWith('sk-or-')) {
       return NextResponse.json(
-        { error: 'key_name is required' },
+        { error: 'Invalid OpenRouter API key format. Must start with sk-or-' },
         { status: 400 }
       );
     }
-    
-    if (!value || typeof value !== 'string' || value.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'API key value is required' },
-        { status: 400 }
-      );
+
+    const encryptedValue = encryptValue(value);
+    const now = new Date().toISOString();
+
+    // Check if key already exists
+    const existing = await db.select().from(apiKeys).where(eq(apiKeys.keyName, 'openrouter'));
+
+    if (existing.length > 0) {
+      // Update existing key
+      await db
+        .update(apiKeys)
+        .set({
+          encryptedValue,
+          updatedAt: now,
+        })
+        .where(eq(apiKeys.keyName, 'openrouter'));
+
+      console.log('[API Key] Updated OpenRouter key');
+    } else {
+      // Insert new key
+      await db.insert(apiKeys).values({
+        keyName: 'openrouter',
+        encryptedValue,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: 'admin',
+      });
+
+      console.log('[API Key] Created OpenRouter key');
     }
-    
-    if (!model_id || typeof model_id !== 'string' || model_id.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'model_id is required - must specify exact OpenRouter model ID' },
-        { status: 400 }
-      );
-    }
-    
-    console.log(`[Admin] Saving API key: ${key_name} with model ID: "${model_id}"`);
-    
-    // Save to database using new persistence layer
-    const result = await saveApiKey(key_name.trim(), value.trim(), model_id.trim(), 'admin');
-    
-    console.log(`[Admin] API key saved successfully: ${key_name} → Model: ${model_id}`);
-    
-    return NextResponse.json({
+
+    return NextResponse.json({ 
       success: true,
-      message: result.message,
-      keyName: result.keyName,
-      modelId: model_id.trim()
+      message: 'OpenRouter API key saved successfully' 
     });
-    
   } catch (error) {
-    console.error('Set API key error:', error);
+    console.error('[API Key] Error saving key:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error') },
+      { error: 'Failed to save API key' },
       { status: 500 }
     );
   }
