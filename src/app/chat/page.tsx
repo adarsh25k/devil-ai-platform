@@ -37,6 +37,19 @@ interface Chat {
 
 const DEFAULT_FOLDERS = ["New Chat", "My Projects", "Snippets", "Game Design", "UI/UX Drafts"];
 
+// 🔥 8 AI Models for DEVIL DEV
+const AI_MODELS = [
+  { value: "auto", label: "🤖 Auto-Route (Smart)", category: "auto" },
+  { value: "main_brain", label: "🧠 Main Brain", category: "main_brain" },
+  { value: "coding", label: "💻 Coding / Full Stack", category: "coding" },
+  { value: "debugging", label: "🐛 Debugging", category: "debugging" },
+  { value: "uiux_mockup", label: "🎨 UI/UX Mockups", category: "uiux_mockup" },
+  { value: "game_dev", label: "🎮 Game Dev", category: "game_dev" },
+  { value: "fast", label: "⚡ Fast Daily Use", category: "fast" },
+  { value: "canvas_notes", label: "📝 Canvas / PPT / Notes", category: "canvas_notes" },
+  { value: "image_generation", label: "🖼️ Image Generation", category: "image_generation" },
+];
+
 export default function ChatPage() {
   const router = useRouter();
   const [chats, setChats] = useState<Chat[]>([]);
@@ -45,6 +58,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("All");
+  const [selectedModel, setSelectedModel] = useState<string>("auto");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [userId, setUserId] = useState("");
@@ -167,7 +181,7 @@ export default function ChatPage() {
       const currentChatData = chats.find((c) => c.id === currentChatId);
       const conversationHistory = currentChatData?.messages.slice(-10) || [];
 
-      // Call API - auto routing, no model selection
+      // 🔥 NEW: Include selected model in API call
       const response = await fetch("/api/chat/send", {
         method: "POST",
         headers: {
@@ -178,6 +192,7 @@ export default function ChatPage() {
           userId,
           chatId: currentChatId,
           conversationHistory,
+          selectedModel, // 🔥 Pass user's model selection
         }),
       });
 
@@ -320,7 +335,7 @@ export default function ChatPage() {
             <div
               key={chat.id}
               onClick={() => setCurrentChatId(chat.id)}
-              className={`explorer-item mb-1 ${
+              className={`explorer-item mb-1 group ${
                 currentChatId === chat.id ? "active" : ""
               }`}
             >
@@ -502,7 +517,31 @@ export default function ChatPage() {
 
             {/* Message Input - Command Line Style */}
             <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl mx-auto space-y-3">
+                {/* 🔥 NEW: Model Selection Dropdown */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-mono">AI Model:</span>
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="bg-input border-border text-foreground font-mono text-xs vscode-hover w-64">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {AI_MODELS.map((model) => (
+                        <SelectItem 
+                          key={model.value} 
+                          value={model.value} 
+                          className="text-foreground hover:bg-accent/10 font-mono text-xs"
+                        >
+                          {model.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedModel !== "auto" && (
+                    <span className="text-xs text-primary font-mono">✓ Manual Mode</span>
+                  )}
+                </div>
+
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-3 text-primary font-mono text-sm">{'>'}</span>
@@ -528,8 +567,8 @@ export default function ChatPage() {
                     ▶
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2 text-center font-mono">
-                  💡 Auto-routing enabled • Press Enter to send
+                <p className="text-xs text-muted-foreground text-center font-mono">
+                  💡 {selectedModel === "auto" ? "Smart routing enabled" : "Manual model selected"} • Press Enter to send
                 </p>
               </div>
             </div>
