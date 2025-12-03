@@ -221,3 +221,5 @@ If issues persist:
 2. Verify all 8 model IDs in `src/lib/modelRouter.ts`
 3. Check server logs for exact error messages
 4. Ensure API keys are valid in OpenRouter dashboard
+
+meta-llama/llama-3.3-70b-instruct:free

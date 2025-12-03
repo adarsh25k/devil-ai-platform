@@ -15,7 +15,7 @@
 🧠 Main Brain               → nousresearch/nous-hermes-3-llama-3-405b
 💻 Coding / Full Stack      → qwen/qwen3-coder-480b-a35b
 🐛 Debugging                → tngtech/deepseek-r1t2-chimera
-🎨 UI/UX Mockups            → meta-llama/llama-3.1-70b-instruct
+🎨 UI/UX Mockups            → meta-llama/llama-3.3-70b-instruct:free
 🎮 Game Dev                 → moonshotai/kimi-k2
 ⚡ Fast Daily Use           → xai/grok-4.1-fast
 📝 Canvas / PPT / Notes     → meta-llama/llama-3.2-3b-instruct
@@ -60,7 +60,7 @@ Click **"+ Add Key"** for each category and enter:
 #### **4. UI/UX Mockups**
 - **Key Type**: 🎨 UI/UX & Mockup API Key
 - **OpenRouter API Key**: `sk-or-v1-your-key-here`
-- **Model ID**: `meta-llama/llama-3.1-70b-instruct`
+- **Model ID**: `meta-llama/llama-3.3-70b-instruct:free`
 
 #### **5. Game Dev**
 - **Key Type**: 🎮 Game Dev API Key

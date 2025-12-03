@@ -19,7 +19,7 @@ Replaced ALL old/deprecated model IDs with VALID OpenRouter endpoints:
 | Coding | `qwen/qwq-32b-preview` | `qwen/qwen3-coder-480b-a35b:free` |
 | Debugging | `qwen/qwq-32b-preview` | `tngtech/deepseek-r1t2-chimera:free` |
 | Fast | `google/gemini-2.0-flash-exp:free` | `xai/grok-4.1-fast:free` |
-| UI/UX Mockup | `google/gemini-2.0-flash-exp` | `meta-llama/llama-3.1-70b-instruct` |
+| UI/UX Mockup | `google/gemini-2.0-flash-exp` | `meta-llama/llama-3.3-70b-instruct:free` |
 | Image Generation | `venice/uncensored` | `veniceai/uncensored` |
 | Game Dev | `deepseek/deepseek-r1` | `moonshotai/kimi-k2:free` |
 | Canvas/Notes | `deepseek/deepseek-r1` | `meta-llama/llama-3.2-3b-instruct:free` |
@@ -36,7 +36,7 @@ Updated the API Key dropdown to show only the 8 valid categories:
 - 💻 Coding API Key
 - 🐛 Debugging / Fix Bugs API Key
 - ⚡ Fast Daily Use API Key
-- 🎨 UI/UX & Mockup API Key
+- 🎨 UI/UX & Mockup Key
 - 🖼️ Image Generation API Key
 - 🎮 Game Dev API Key
 - 📝 Canvas / PPT / Notes API Key
@@ -103,7 +103,7 @@ All 8 categories tested successfully in debug mode:
 ### ✅ Test 4: UI/UX Mockup
 ```json
 {
-  "chosenModel": "meta-llama/llama-3.1-70b-instruct",
+  "chosenModel": "meta-llama/llama-3.3-70b-instruct:free",
   "chosenKey": "uiux_mockup_api_key",
   "category": "uiux_mockup"
 }

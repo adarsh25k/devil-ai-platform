@@ -20,7 +20,7 @@ Replaced ALL model IDs with your EXACT specifications:
 main_brain → "nousresearch/nous-hermes-3-llama-3-405b"
 coding → "qwen/qwen3-coder-480b-a35b"              // Removed :free
 debugging → "tngtech/deepseek-r1t2-chimera"        // Removed :free
-uiux_mockup → "meta-llama/llama-3.1-70b-instruct"
+uiux_mockup → "meta-llama/llama-3.3-70b-instruct:free"
 game_dev → "moonshotai/kimi-k2"                    // Removed :free
 fast → "xai/grok-4.1-fast"                         // Removed :free
 canvas_notes → "meta-llama/llama-3.2-3b-instruct"  // Removed :free

@@ -25,7 +25,7 @@ The chat pipeline was failing with "No endpoints found" and "Provider returned e
 | 🧠 Main Brain | `nousresearch/nous-hermes-3-llama-3-405b` |
 | 💻 Coding | `qwen/qwen3-coder-480b-a35b` |
 | 🐛 Debugging | `tngtech/deepseek-r1t2-chimera` |
-| 🎨 UI/UX Mockup | `meta-llama/llama-3.1-70b-instruct` |
+| 🎨 UI/UX Mockup | `meta-llama/llama-3.3-70b-instruct:free` |
 | 🎮 Game Dev | `moonshotai/kimi-k2` |
 | ⚡ Fast | `xai/grok-4.1-fast` |
 | 📝 Canvas/Notes | `meta-llama/llama-3.2-3b-instruct` |

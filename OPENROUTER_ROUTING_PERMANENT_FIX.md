@@ -16,7 +16,7 @@ The chat pipeline was using incorrect model IDs with ":free" suffixes, causing:
 | 💻 Coding | `qwen/qwen3-coder-480b-a35b:free` | `qwen/qwen3-coder-480b-a35b` |
 | 🐛 Debugging | `tngtech/deepseek-r1t2-chimera:free` | `tngtech/deepseek-r1t2-chimera` |
 | ⚡ Fast | `xai/grok-4.1-fast:free` | `xai/grok-4.1-fast` |
-| 🎨 UI/UX Mockup | *(unchanged)* | `meta-llama/llama-3.1-70b-instruct` |
+| 🎨 UI/UX Mockup | *(unchanged)* | `meta-llama/llama-3.3-70b-instruct:free` |
 | 🖼️ Image Gen | *(unchanged)* | `veniceai/uncensored` |
 | 🎮 Game Dev | `moonshotai/kimi-k2:free` | `moonshotai/kimi-k2` |
 | 📝 Canvas/Notes | `meta-llama/llama-3.2-3b-instruct:free` | `meta-llama/llama-3.2-3b-instruct` |
@@ -78,7 +78,7 @@ curl -X POST http://localhost:3000/api/chat/send \
 | "Fix this error: cannot read property" | `tngtech/deepseek-r1t2-chimera` |
 | "Write Python code to sort array" | `qwen/qwen3-coder-480b-a35b` |
 | "What is React?" | `xai/grok-4.1-fast` |
-| "Design a mobile login screen" | `meta-llama/llama-3.1-70b-instruct` |
+| "Design a mobile login screen" | `meta-llama/llama-3.3-70b-instruct:free` |
 | "Generate a logo for gaming app" | `veniceai/uncensored` |
 | "Create game level design" | `moonshotai/kimi-k2` |
 | "Make PPT slides" | `meta-llama/llama-3.2-3b-instruct` |

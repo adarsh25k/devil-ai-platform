@@ -1202,11 +1202,29 @@ export default function AdminDashboard() {
                 value={newKey.model_id}
                 onChange={(e) => setNewKey({ ...newKey, model_id: e.target.value })}
                 className="bg-input border-border text-foreground font-mono vscode-hover"
-                placeholder="e.g., xai/grok-4.1-fast"
+                placeholder={
+                  newKey.key_name === "main_brain_key" 
+                    ? "nousresearch/nous-hermes-3-llama-3-405b" 
+                    : newKey.key_name === "coding_key"
+                    ? "qwen/qwen3-coder-480b-a35b"
+                    : newKey.key_name === "debugging_api_key"
+                    ? "tngtech/deepseek-r1t2-chimera"
+                    : newKey.key_name === "uiux_mockup_api_key"
+                    ? "meta-llama/llama-3.3-70b-instruct:free"
+                    : newKey.key_name === "game_dev_key"
+                    ? "moonshotai/kimi-k2"
+                    : newKey.key_name === "fast_api_key"
+                    ? "xai/grok-4.1-fast"
+                    : newKey.key_name === "canvas_notes_api_key"
+                    ? "meta-llama/llama-3.2-3b-instruct"
+                    : newKey.key_name === "image_generation_api_key"
+                    ? "veniceai/uncensored"
+                    : "e.g., xai/grok-4.1-fast"
+                }
                 required
               />
               <p className="text-xs text-yellow-500 font-mono">⚠️ CRITICAL: Copy EXACT model ID from OpenRouter - NO modifications!</p>
-              <p className="text-xs text-muted-foreground font-mono">Examples: xai/grok-4.1-fast, qwen/qwen3-coder-480b-a35b</p>
+              <p className="text-xs text-muted-foreground font-mono">Examples: xai/grok-4.1-fast, meta-llama/llama-3.3-70b-instruct:free</p>
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono vscode-hover">
               Save Key
